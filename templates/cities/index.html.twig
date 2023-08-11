@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cities{% endblock %}
+
+{% block body %}
+    <div class="post">
+        <div class="postheader"></div>
+        <div class="postcontent">
+            <h2>Список городов</h2>
+
+            {% if showForm %}
+                {{ form_start(formSort, {'method': 'GET'}) }}
+                <div class="sortform">
+                    <div class="pole">
+                        <h3>Поле сортировки</h3>
+                        {% set input = formSort.sort %}
+                        {% for option in input.vars.choices %}
+                            <span>
+                                <input type="radio" name="{{ input.vars.full_name }}" value="{{ option.value }}" {% if (option is selectedchoice(input.vars.value)) %} checked {% endif %}>
+                                <b>{{ option.label }}</b>
+                            </span>
+                        {% endfor %}
+                        {% set input = input.setRendered() %}
+                    </div>
+                    <div class="napr">
+                        <h3>Направление сортировки</h3>
+                        {% set order = formSort.order %}
+                        {% for option in order.vars.choices %}
+                            <span>
+                                <input type="radio" name="{{ order.vars.full_name }}" value="{{ option.value }}" {% if (option is selectedchoice(order.vars.value)) %} checked {% endif %}>
+                                <b>{{ option.label }}</b>
+                            </span>
+                        {% endfor %}
+                        {% set order = order.setRendered() %}
+                    </div>
+                {{ form_end(formSort) }}
+                    <input type="submit" value="Сортировать">
+                </div>
+            {% else %}
+                <div class="form flrig">
+                    <form action="{{ path('create_city') }}" method="get">
+                        <input type="submit" value="Добавить">
+                    </form>
+                    <form action="{{ path('cities') }}" method="get">
+                        <input type="submit" value="Сортировать">
+                        <input type="hidden" name="form" value="1">
+                    </form>
+                </div>
+            {% endif %}
+
+            {% for city in cities %}
+                <div class='cpsity'>
+                    <h3>{{ city.name }}</h3>
+                    <span>
+                        <form action="{{ path('delete_city', {'id': city.id}) }}" method="POST">
+                            <input type="submit"
+                                   onclick="return confirm('Вы действительно хотите удалить город?')"
+                                   value="Удалить">
+                            <input type="hidden" name="token" value="{{ csrf_token('delete_city') }}">
+                        </form>
+                    </span>
+                    <span>
+                        <form action="{{ path('edit_city', {'id': city.id}) }}" method="get">
+                            <input type="submit" value="Редактировать">
+                        </form>
+                    </span>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="postbottom"></div>
+    </div>
+{% endblock %}

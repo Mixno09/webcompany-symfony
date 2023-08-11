@@ -12,6 +12,7 @@ class Kernel extends BaseKernel
     public function boot(): void
     {
         parent::boot();
+
         date_default_timezone_set($this->getContainer()->getParameter('timezone'));
     }
 }

@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create City{% endblock %}
+
+{% block body %}
+<div class="post">
+    <div class="postheader"></div>
+    <div class="postcontent">
+        <h2>Список городов</h2>
+        <!--вывод таблицы Города-->
+        {{ form_errors(form) }}
+        {{ form_start(form, {'attr': {'class': 'dopsity'}}) }}
+            <h3>Форма добовления города</h3>
+
+            {% for error in form.name.vars.errors %}
+                <span style="color: #d71414;">{{ error.message }}</span><br>
+            {% endfor %}
+            {{ form_widget(form.name, {
+                'attr': {'placeholder': 'Название города'},
+                'translation_domain': false,
+            }) }}
+
+            {% for error in form.idx.vars.errors %}
+                <span style="color: #d71414;">{{ error.message }}</span><br>
+            {% endfor %}
+            {{ form_widget(form.idx, {
+                'attr': {'placeholder': 'Индекс Сортировки'},
+                'translation_domain': false,
+            }) }}
+            <br>
+            <input type="submit" value="Добавить">
+            <a href="{{ path('cities') }}">Отмена</a>
+        {{ form_end(form) }}
+    </div>
+    <div class="postbottom"></div>
+</div>
+{% endblock %}
