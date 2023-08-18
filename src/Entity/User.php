@@ -10,20 +10,23 @@ class User
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(options: ['unsigned' => true])]
     private ?int $id = null;
-
     #[ORM\Column(length: 255)]
-    private string $name = '';
-
+    private string $name;
     #[ORM\Column(length: 255)]
-    private string $surName = '';
+    private string $surName;
+    #[ORM\ManyToOne(targetEntity: City::class)]
+    private City $city;
+    #[ORM\OneToOne(targetEntity: File::class)]
+    private ?File $avatar = null;
 
-    #[ORM\Column]
-    private ?int $cityId = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $fileName = null;
+    public function __construct(string $name, string $surName, City $city)
+    {
+        $this->name = $name;
+        $this->surName = $surName;
+        $this->city = $city;
+    }
 
     public function getId(): ?int
     {
@@ -35,11 +38,9 @@ class User
         return $this->name;
     }
 
-    public function setName(string $name): static
+    public function setName(string $name): void
     {
         $this->name = $name;
-
-        return $this;
     }
 
     public function getSurName(): string
@@ -47,34 +48,28 @@ class User
         return $this->surName;
     }
 
-    public function setSurName(string $surName): static
+    public function setSurName(string $surName): void
     {
         $this->surName = $surName;
-
-        return $this;
     }
 
-    public function getCityId(): ?int
+    public function getCity(): City
     {
-        return $this->cityId;
+        return $this->city;
     }
 
-    public function setCityId(int $cityId): static
+    public function setCity(City $city): void
     {
-        $this->cityId = $cityId;
-
-        return $this;
+        $this->city = $city;
     }
 
-    public function getFileName(): ?string
+    public function getAvatar(): ?File
     {
-        return $this->fileName;
+        return $this->avatar;
     }
 
-    public function setFileName(?string $fileName): static
+    public function setAvatar(File $avatar): void
     {
-        $this->fileName = $fileName;
-
-        return $this;
+        $this->avatar = $avatar;
     }
 }

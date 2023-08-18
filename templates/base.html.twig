@@ -22,13 +22,15 @@
             <div id="topnav">
                 <ul class="lavaLampWithImage" id="1">
                     <li class='current'><a href="{{ path('cities') }}">Города</a></li>
-                    <li><a href="/users/index.php">Пользователи</a></li>
-                    <li><a href="/search/index.php">Поиск</a></li>
+                    <li><a href="{{ path('users') }}">Пользователи</a></li>
+                    <li><a href="{{ path('search_user') }}">Поиск</a></li>
                 </ul>
             </div>
         </div>
         <div id="content">
             <div id="left">
+                {{ component('CounterComponent') }}
+{#                {{ render(controller('App\\Controller\\CounterController')) }}#}
                 {% block body %}{% endblock %}
             </div>
             <div id="sidebar">
@@ -107,6 +109,5 @@
         });
     });
 </script>
-{% block javascripts %}
-{% endblock %}
+{% block javascripts %}{% endblock %}
 </html>

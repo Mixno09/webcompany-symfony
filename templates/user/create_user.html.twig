@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create{% endblock %}
+
+{% block body %}
+    <div class="post">
+        <div class="postheader"> </div>
+        <div class="postcontent">
+            <h2>Список Пользователей</h2>
+            <!--Сортирвка-->
+            {{ form_start(form) }}
+                <div class="form">
+                    <h3>Форма Добовления Пользователя</h3>
+                    {% for error in form.name.vars.errors %}
+                    <span style="color: #d71414; margin: unset">{{ error.message }}</span>
+                    {% endfor %}
+                    {{ form_widget(form.name, {
+                        'attr': {'placeholder': 'Имя'},
+                        'translation_domain': false,
+                    }) }}
+                    {% for error in form.surName.vars.errors %}
+                        <span style="color: #d71414; margin: unset">{{ error.message }}</span>
+                    {% endfor %}
+                    {{ form_widget(form.surName, {
+                        'attr': {'placeholder': 'Фамилия'},
+                        'translation_domain': false,
+                    }) }}
+                    <span>
+                        {% for error in form.city.vars.errors %}
+                            <span style="color: #d71414; margin: unset">{{ error.message }}</span>
+                        {% endfor %}
+                        {{ form_widget(form.city, {
+                            'attr': {'size': '1'},
+                            'translation_domain': false,
+                        }) }}
+                    </span>
+                    <p>Выберите файл изображения</p>
+                    {% for error in form.file.vars.errors %}
+                        <span style="color: #d71414; margin: unset">{{ error.message }}</span>
+                    {% endfor %}
+                    {{ form_widget(form.file, {'translation_domain': false}) }}
+                    <input type="submit" value="Добавить">
+                    <a href="{{ path('users') }}">Отмена</a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+        <div class="postbottom"></div>
+    </div>
+{% endblock %}

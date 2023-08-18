@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Users{% endblock %}
+
+{% block body %}
+    <div class="post">
+        <div class="postheader"> </div>
+        <div class="postcontent">
+            <h2>Список Пользователей</h2>
+            <!--Сортирвка-->
+            {% if showForm %}
+                <div class="sortform">
+                    <div class="pole">
+                        <h3>Поле сортировки</h3>
+                        {% set input = formSort.sort %}
+                        {% for option in input.vars.choices %}
+                        <span>
+                            <input type="radio" name="{{ input.vars.full_name }}" value="{{ option.value }}" {% if (option is selectedchoice(input.vars.value)) %} checked {% endif %} form="formSort">
+                            <b>{{ option.label }}</b>
+                        </span>
+                        {% endfor %}
+                        {% set input = input.setRendered() %}
+                    </div>
+                    <div class="napr">
+                        <h3>Направление сортировки</h3>
+                        {% set input = formSort.order %}
+                        {% for option in input.vars.choices %}
+                        <span>
+                            <input type="radio" name="{{ input.vars.full_name }}" value="{{ option.value }}" {% if (option is selectedchoice(input.vars.value)) %} checked {% endif %} form="formSort">
+                            <b>{{ option.label }}</b>
+                        </span>
+                        {% endfor %}
+                        {% set input = input.setRendered() %}
+                    </div>
+                    <input type="submit" value="Сортировать" form="formSort">
+                    <input type="hidden" name="form" value="1" form="formSort">
+                    <a href="{{ path('users') }}">Отмена</a>
+                </div>
+            {% endif %}
+            <h3><a href="#down">Вниз</a></h3>
+            <div style="display:inline-block">
+                <form action="{{ path('create_user') }}" method="get">
+                    <input type="submit" value="Добавить">
+                </form>
+                <button type="submit" name="form" value="1" form="formSort">Сортировать</button>
+            </div>
+            <!--Создадим выпадающий список "Города"-->
+            <div class="filter">
+                <h3>Фильтр по Городам</h3>
+                {{ form_start(formSort, {'attr': {'id': 'formSort'}}) }}
+                    {% set input = formSort.sortByCity %}
+                    <select size="1" name="{{ input.vars.full_name }}">
+                        <option value="">Выберите город</option>
+                        {% for option in input.vars.choices %}
+                            <option value="{{ option.value }}" {% if (option is selectedchoice(input.vars.value)) %} selected {% endif %}>{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="submit" onclick="hhh()" value="Показать">
+                {{ form_end(formSort, {'render_rest': false}) }}
+            </div>
+
+            {% for user in users %}
+            <div class="users">
+                <img width="100" src="{{ user.avatar }}" class="image" alt="Фотография">
+                <div class="userdan">
+                    <h4>{{ user.name }} {{ user.surName }}</h4>
+                    <p>Город: {{ user.cityName }}</p>
+
+
+                    <form action="{{ path('delete_user', {'id': user.userId}) }}" method="post">
+                        <input type="hidden" name="token" value="{{ csrf_token('delete_user') }}">
+                        <input type="submit" value="Удалить" onclick="return confirm('Вы действительно хотите удалить пользователя?')">
+                    </form>
+
+
+                    <form action="{{ path('edit_user', {'id': user.userId}) }}" method="get">
+                        <input type="submit" value="Редактировать">
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+
+            <h3><a href="#top">Наверх</a></h3>
+        </div>
+        <div class="postbottom"></div>
+        <div id="down"></div>
+    </div>
+{% endblock %}

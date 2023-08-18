@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class CitiesController extends AbstractController
+final class CitiesController extends AbstractController
 {
     private EntityManagerInterface $entityManager;
     private CityRepository $cityRepository;
@@ -26,25 +26,20 @@ class CitiesController extends AbstractController
     #[Route('/', name: 'cities', methods: ['GET'])]
     public function index(Request $request): Response
     {
+        $orderBy = 'idx';
+        $order = 'ASC';
+
         $showForm = $request->query->has('form');
-        $formSort = $this->createForm(CitySortType::class);
 
-        $orderBy = $request->query->getString('sort');
-        $order = $request->query->getString('order');
-
-        $repository = $this->cityRepository;
-
-        if (isset($orderBy) && isset($order)) {
-            $cities = $repository->findAllCity($orderBy, $order);
-
-            return $this->render('cities/index.html.twig', [
-                'cities' => $cities,
-                'formSort' => $formSort,
-                'showForm' => $showForm,
-            ]);
+        $formSort = $this->createForm(CitySortType::class, options: ['method' => 'GET']);
+        $formSort->handleRequest($request);
+        if ($formSort->isSubmitted() && $formSort->isValid()) {
+            $data = $formSort->getData();
+            $orderBy = $data['sort'];
+            $order = $data['order'];
         }
 
-        $cities = $repository->findAllCity();
+        $cities = $this->cityRepository->findAllCity($orderBy, $order);
 
         return $this->render('cities/index.html.twig', [
             'cities' => $cities,
@@ -111,7 +106,7 @@ class CitiesController extends AbstractController
         }
 
         return $this->render('cities/edit_city.html.twig', [
-            'form' => $form
+            'form' => $form,
         ]);
     }
 }
