@@ -3,10 +3,12 @@
 namespace App\DataFixtures;
 
 use App\Entity\City;
+use App\Entity\File as Avatar;
 use App\Entity\User;
 use App\Services\FileUploader;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -29,20 +31,10 @@ class AppFixtures extends Fixture
             'Dmitriy' => 'Sauk',
             'Maxim' => 'Petrov',
         ];
-        $cities = $this->loadCity($manager);
-        $avatars = $this->loadFile($manager);
 
-        $users = [];
         foreach ($names as $name => $surName) {
-            $city = next($cities); //todo плохо
-            if ($city !== false) {
-                $user = new User($name, $surName, $city);
-            }
-
-            $avatar = next($avatars);
-            if ($avatar !== false) {
-                $user->setAvatar($avatar);
-            }
+            $user = new User($name, $surName, $this->loadCity($manager));
+            $user->setAvatar($this->loadFile($manager));
 
             $manager->persist($user);
         }
@@ -50,11 +42,7 @@ class AppFixtures extends Fixture
         $manager->flush();
     }
 
-    /**
-     * @param \Doctrine\Persistence\ObjectManager $manager
-     * @return City[]
-     */
-    private function loadCity(ObjectManager $manager): array
+    private function loadCity(ObjectManager $manager): City
     {
         $citiesData = [
             1 => 'Витебск',
@@ -65,22 +53,19 @@ class AppFixtures extends Fixture
             0 => 'Гродно',
         ];
 
-        $cities = [];
-        foreach ($citiesData as $index => $cityName) {
-            $city = new City();
+        $city = new City();
 
-            $city->setName($cityName);
-            $city->setIdx($index);
+        $idx = array_rand($citiesData);
 
-            $manager->persist($city);
+        $city->setIdx($idx);
+        $city->setName($citiesData[$idx]);
 
-            $cities[] = $city;
-        }
+        $manager->persist($city);
 
-        return $cities;
+        return $city;
     }
 
-    private function loadFile(ObjectManager $manager): array
+    private function loadFile(ObjectManager $manager): Avatar
     {
         $paths = [
             __DIR__ . '/avatars/83723_pla_carny_adult_rindpur_400g_1.jpg',
@@ -90,18 +75,21 @@ class AppFixtures extends Fixture
             __DIR__ . '/avatars/placeholder.png',
         ];
 
-        $files = [];
-        foreach ($paths as $path) {
-            $file = new File($path);
+        $key = array_rand($paths);
 
-            $uploaderFile = new UploadedFile($file->getRealPath(), $file->getBasename(), $file->getMimeType(), test: true);
-            $avatar = $this->fileUploader->upload($uploaderFile); //todo files move and delete
+        $file = new File($paths[$key]);
 
-            $manager->persist($avatar);
+        $fileSystem = new Filesystem();
+        $targetPath = sys_get_temp_dir() . '/' . $file->getBasename();
+        $fileSystem->copy($paths[$key], $targetPath);
+        $file = new File($targetPath);
 
-            $files[] = $avatar;
-        }
+        $uploadedFile = new UploadedFile($file->getRealPath(), $file->getBasename(), $file->getMimeType(), test: true);
 
-        return $files;
+        $avatar = $this->fileUploader->upload($uploadedFile);
+
+        $manager->persist($avatar);
+
+        return $avatar;
     }
 }
