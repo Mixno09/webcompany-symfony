@@ -33,6 +33,6 @@ final readonly class UserSortDataMapper implements DataMapperInterface
         $order = $forms['order']->getData() ?? GetUsersQuery::ORDER_ASC;
         $cityId = $forms['sortByCity']->getData()?->getId();
 
-        $viewData = new GetUsersQuery($orderBy, $order, $cityId);
+        $viewData = new GetUsersQuery($orderBy, $order, cityId: $cityId);
     }
 }

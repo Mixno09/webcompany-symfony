@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DataFixtures;
 
 use App\Entity\City;
-use App\Entity\File as Avatar;
 use App\Entity\User;
 use App\Services\FileUploader;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -12,7 +13,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-class AppFixtures extends Fixture
+final class AppFixtures extends Fixture
 {
     private FileUploader $fileUploader;
 
@@ -23,73 +24,98 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        $names = [
-            'Mixail' => 'Ivanov',
-            'Nikolay' => 'Turchak',
-            'Eugeniy' => 'Undra',
-            'Alexey' => 'Gavrilou',
-            'Dmitriy' => 'Sauk',
-            'Maxim' => 'Petrov',
-        ];
+        $cities = $this->loadCities($manager);
+        $avatars = $this->loadAvatars($manager);
 
-        foreach ($names as $name => $surName) {
-            $user = new User($name, $surName, $this->loadCity($manager));
-            $user->setAvatar($this->loadFile($manager));
-
-            $manager->persist($user);
-        }
+        $this->loadUsers($manager, $cities, $avatars);
 
         $manager->flush();
     }
 
-    private function loadCity(ObjectManager $manager): City
+    /**
+     * @return array<string, \App\Entity\City>
+     */
+    private function loadCities(ObjectManager $manager): array
     {
-        $citiesData = [
-            1 => 'Витебск',
-            19 => 'Брест',
-            8 => 'Могилев',
-            3 => 'Минск',
-            5 => 'Гомель',
-            0 => 'Гродно',
-        ];
+        $cities = [];
 
         $city = new City();
-
-        $idx = array_rand($citiesData);
-
-        $city->setIdx($idx);
-        $city->setName($citiesData[$idx]);
-
+        $city->setName('Minsk');
+        $city->setIdx(10);
         $manager->persist($city);
+        $cities['minsk'] = $city;
 
-        return $city;
+        $city = new City();
+        $city->setName('Brest');
+        $city->setIdx(5);
+        $manager->persist($city);
+        $cities['brest'] = $city;
+
+        $city = new City();
+        $city->setName('Grodno');
+        $city->setIdx(0);
+        $manager->persist($city);
+        $cities['grodno'] = $city;
+
+        return $cities;
     }
 
-    private function loadFile(ObjectManager $manager): Avatar
+    /**
+     * @param array<string, \App\Entity\City> $cities
+     * @param array<string, \App\Entity\File> $avatars
+     */
+    private function loadUsers(ObjectManager $manager, array $cities, array $avatars): void
     {
-        $paths = [
-            __DIR__ . '/avatars/83723_pla_carny_adult_rindpur_400g_1.jpg',
-            __DIR__ . '/avatars/gs_5020.jpg',
-            __DIR__ . '/avatars/images.jpg',
-            __DIR__ . '/avatars/images (1).jpg',
-            __DIR__ . '/avatars/placeholder.png',
-        ];
+        $user = new User('Mixail', 'Ivanov', $cities['minsk']);
+        $user->setAvatar($avatars['avatar-1']);
+        $manager->persist($user);
 
-        $key = array_rand($paths);
+        $user = new User('Nikolay', 'Turchak', $cities['minsk']);
+        $user->setAvatar($avatars['avatar-2']);
+        $manager->persist($user);
 
-        $file = new File($paths[$key]);
+        $user = new User('Eugeniy', 'Undra', $cities['brest']);
+        $user->setAvatar($avatars['avatar-3']);
+        $manager->persist($user);
 
-        $fileSystem = new Filesystem();
-        $targetPath = sys_get_temp_dir() . '/' . $file->getBasename();
-        $fileSystem->copy($paths[$key], $targetPath);
-        $file = new File($targetPath);
+        $user = new User('Alexey', 'Gavrilou', null);
+        $manager->persist($user);
+    }
 
-        $uploadedFile = new UploadedFile($file->getRealPath(), $file->getBasename(), $file->getMimeType(), test: true);
+    /**
+     * @return array<string, \App\Entity\File>
+     */
+    private function loadAvatars(ObjectManager $manager): array
+    {
+        $avatars = [];
 
+        $uploadedFile = $this->getUploadedFile(__DIR__ . '/avatars/avatar-1.jpg');
         $avatar = $this->fileUploader->upload($uploadedFile);
-
         $manager->persist($avatar);
+        $avatars['avatar-1'] = $avatar;
 
-        return $avatar;
+        $uploadedFile = $this->getUploadedFile(__DIR__ . '/avatars/avatar-2.jpg');
+        $avatar = $this->fileUploader->upload($uploadedFile);
+        $manager->persist($avatar);
+        $avatars['avatar-2'] = $avatar;
+
+        $uploadedFile = $this->getUploadedFile(__DIR__ . '/avatars/avatar-3.jpg');
+        $avatar = $this->fileUploader->upload($uploadedFile);
+        $manager->persist($avatar);
+        $avatars['avatar-3'] = $avatar;
+
+        return $avatars;
+    }
+
+    private function getUploadedFile(string $filePath): UploadedFile
+    {
+        $fileSystem = new Filesystem();
+
+        $file = new File($filePath);
+        $targetPath = tempnam(sys_get_temp_dir(), 'avatar');
+        $fileSystem->copy($file->getRealPath(), $targetPath, true);
+
+        $file = new File($targetPath);
+        return new UploadedFile($file->getRealPath(), $file->getBasename(), $file->getMimeType(), test: true);
     }
 }

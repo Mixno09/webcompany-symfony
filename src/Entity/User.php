@@ -17,11 +17,12 @@ class User
     #[ORM\Column(length: 255)]
     private string $surName;
     #[ORM\ManyToOne(targetEntity: City::class)]
-    private City $city;
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?City $city;
     #[ORM\OneToOne(targetEntity: File::class)]
     private ?File $avatar = null;
 
-    public function __construct(string $name, string $surName, City $city)
+    public function __construct(string $name, string $surName, ?City $city)
     {
         $this->name = $name;
         $this->surName = $surName;
@@ -53,7 +54,7 @@ class User
         $this->surName = $surName;
     }
 
-    public function getCity(): City
+    public function getCity(): ?City
     {
         return $this->city;
     }

@@ -10,7 +10,7 @@ final readonly class UserListItem
         public int $userId,
         public string $name,
         public string $surName,
-        public string $cityName,
+        public ?string $cityName,
         public string $avatar,
     ) {}
 }

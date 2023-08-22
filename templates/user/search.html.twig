@@ -13,14 +13,18 @@
         </div>
     </form>
     {% if users is defined %}
-    {% for user in users %}
-    <div class="users">
-        <img width="100" src="{{ user.avatar }}" class="image" alt="Фотография">
-        <div class="userdan">
-            <h4>{{ user.name }} {{ user.surName }}</h4>
-            <p>Город: {{ user.cityName }}</p>
-        </div>
-    </div>
-    {% endfor %}
+        {% for user in users %}
+            <div class="users">
+                <img width="100" src="{{ user.avatar }}" class="image" alt="Фотография">
+                <div class="userdan">
+                    <h4>{{ user.name }} {{ user.surName }}</h4>
+                    {% if user.cityName is null %}
+                        <p>Без города</p>
+                    {% else %}
+                        <p>Город: {{ user.cityName }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
     {% endif %}
 {% endblock %}
