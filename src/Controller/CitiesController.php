@@ -48,7 +48,7 @@ final class CitiesController extends AbstractController
         ]);
     }
 
-    #[Route('/create/city', name: 'create_city', methods: ['GET', 'POST'])]
+    #[Route('/city/create', name: 'create_city', methods: ['GET', 'POST'])]
     public function create(Request $request): Response
     {
         $city = new City();
