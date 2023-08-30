@@ -6,13 +6,12 @@ namespace App\Tests\Controller;
 
 use App\Entity\City;
 use App\Entity\User;
+use App\Repository\CityRepository;
 use App\Repository\UserRepository;
 use App\Services\FileUploader;
 use Doctrine\ORM\EntityManagerInterface;
+use Generator;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final class UserControllerTest extends WebTestCase
 {
@@ -50,14 +49,12 @@ final class UserControllerTest extends WebTestCase
 
         /** @var FileUploader $fileUploader */
         $fileUploader = self::getContainer()->get(FileUploader::class);
-        $file = $fileUploader->copy(__DIR__ . '/../files/avatar-1.jpg');
-        $filePath = $fileUploader->getFilePath($file);
 
         $client->submit($form, [
             'user[name]' => 'Mixail',
             'user[surName]' => 'Sokolov',
             'user[city]' => $city->getId(),
-            'user[file]' => $filePath,
+            'user[file]' => __DIR__ . '/../files/avatar-1.jpg',
         ]);
 
         $this->assertResponseRedirects('/user', 302);
@@ -159,5 +156,118 @@ final class UserControllerTest extends WebTestCase
 
         $userRepository = self::getContainer()->get(UserRepository::class);
         $this->assertNull( $userRepository->find(['id' => $userId]));
+    }
+
+    /**
+     * @dataProvider getSortFieldAndSortDirection
+     */
+    public function test_users_should_be_sort_user(array $users, array $formParams, array $formValues, array $expectedResult): void
+    {
+        $client = self::createClient();
+
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        /** @var \App\Entity\User[] $users */
+        foreach ($users as $user) {
+            $entityManager->persist($user->getCity());
+            $entityManager->persist($user);
+        }
+        $entityManager->flush();
+
+        if (array_key_exists('cityName', $formParams)) {
+            $cityRepository = self::getContainer()->get(CityRepository::class);
+            $minsk = $cityRepository->findOneBy(['name' => $formParams['cityName']]);
+            $cityId = $minsk->getId();
+            $formValues['cityId'] = $cityId;
+        }
+
+        $crawler = $client->request('GET', '/user', ['form' => '1']);
+        $this->assertResponseIsSuccessful();
+
+        $form = $crawler->filter('form[id="formSort"]')->form();
+
+        $crawler = $client->submit($form, $formValues);
+
+        $this->assertResponseIsSuccessful();
+        $actualResult = $crawler->filter('.userdan h4')->extract(['_text']);
+
+        $this->assertSame($expectedResult, $actualResult);
+    }
+
+    public function getSortFieldAndSortDirection(): Generator
+    {
+        $users = [];
+
+        $city = new City();
+        $city->setName('Brest');
+        $city->setIdx(1);
+
+        $user = new User('Andrey', 'Andreev', $city);
+        $users[] = $user;
+
+        $city = new City();
+        $city->setName('Grodno');
+        $city->setIdx(2);
+
+        $user = new User('Boris', 'Borisov', $city);
+        $users[] = $user;
+
+        $city = new City();
+        $city->setName('Minsk');
+        $city->setIdx(3);
+
+        $user = new User('Dima', 'Dmitriev', $city);
+        $users[] = $user;
+
+        $user = new User('Igor', 'Igorev', $city);
+        $users[] = $user;
+
+        $formParams = [
+            'cityName' => 'Minsk',
+        ];
+        $formValues = [
+            'orderBy' => 'name',
+            'order' => 'ASC',
+        ];
+        $expectedResult= ['Dima Dmitriev', 'Igor Igorev'];
+        yield [$users, $formParams, $formValues, $expectedResult];
+
+        /** @noinspection PhpConditionAlreadyCheckedInspection */
+        $formParams = [
+            'cityName' => 'Minsk',
+        ];
+        $formValues = [
+            'orderBy' => 'name',
+            'order' => 'DESC',
+        ];
+        $expectedResult= ['Igor Igorev', 'Dima Dmitriev'];
+        yield [$users, $formParams, $formValues, $expectedResult];
+
+        $formValues = [
+            'orderBy' => 'name',
+            'order' => 'ASC',
+        ];
+        $expectedResult= ['Andrey Andreev', 'Boris Borisov', 'Dima Dmitriev', 'Igor Igorev'];
+        yield [$users, [], $formValues, $expectedResult];
+
+        $formValues = [
+            'orderBy' => 'name',
+            'order' => 'DESC',
+        ];
+        $expectedResult = ['Igor Igorev', 'Dima Dmitriev', 'Boris Borisov', 'Andrey Andreev'];
+        yield [$users, [], $formValues, $expectedResult];
+
+        $formValues = [
+            'orderBy' => 'surname',
+            'order' => 'ASC',
+        ];
+        $expectedResult = ['Andrey Andreev', 'Boris Borisov', 'Dima Dmitriev', 'Igor Igorev'];
+        yield [$users, [], $formValues, $expectedResult];
+
+        $formValues = [
+            'orderBy' => 'surname',
+            'order' => 'DESC',
+        ];
+        $expectedResult = ['Igor Igorev', 'Dima Dmitriev', 'Boris Borisov', 'Andrey Andreev'];
+        yield [$users, [], $formValues, $expectedResult];
     }
 }

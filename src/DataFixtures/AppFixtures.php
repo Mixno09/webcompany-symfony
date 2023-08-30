@@ -9,9 +9,6 @@ use App\Entity\User;
 use App\Services\FileUploader;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final class AppFixtures extends Fixture
 {
@@ -70,11 +67,11 @@ final class AppFixtures extends Fixture
         $user->setAvatar($avatars['avatar-1']);
         $manager->persist($user);
 
-        $user = new User('Nikolay', 'Turchak', $cities['minsk']);
+        $user = new User('Nikolay', 'Turchak', $cities['brest']);
         $user->setAvatar($avatars['avatar-2']);
         $manager->persist($user);
 
-        $user = new User('Eugeniy', 'Undra', $cities['brest']);
+        $user = new User('Eugeniy', 'Undra', $cities['grodno']);
         $user->setAvatar($avatars['avatar-3']);
         $manager->persist($user);
 

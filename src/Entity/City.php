@@ -18,13 +18,9 @@ class City
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 3, max: 255)]
     private string $name = '';
 
     #[ORM\Column(type: Types::SMALLINT, options: ['unsigned' => true])]
-    #[Assert\NotBlank]
-    #[Assert\Range(min: 0, max: 65535)]
     private int $idx = 0;
 
     public function getId(): ?int

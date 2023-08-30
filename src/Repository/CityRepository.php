@@ -20,25 +20,6 @@ class CityRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, City::class);
     }
-
-    public function findAllCity(string $orderBy = 'idx', string $order = 'ASC'): array
-    {
-        $orderBy = match ($orderBy) {
-            'id' => 'c.id',
-            'name' => 'c.name',
-            default => 'c.idx',
-        };
-
-        $order = match ($order) {
-            'ASC' => 'ASC',
-            default => 'DESC',
-        };
-
-        return $this->createQueryBuilder('c')
-            ->orderBy($orderBy, $order)
-            ->getQuery()
-            ->getResult();
-    }
 //    /**
 //     * @return City[] Returns an array of City objects
 //     */

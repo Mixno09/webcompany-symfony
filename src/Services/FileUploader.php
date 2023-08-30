@@ -12,10 +12,11 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use function uniqid;
 
-final readonly class FileUploader
+final class FileUploader
 {
-    private string $targetDirectory;
-    private SluggerInterface $slugger;
+    private readonly string $targetDirectory;
+    private readonly SluggerInterface $slugger;
+    private ?Filesystem $filesystem = null;
 
     public function __construct(
         #[Autowire(value: '%kernel.project_dir%/public/uploads')] string $targetDirectory,
@@ -27,9 +28,7 @@ final readonly class FileUploader
 
     public function upload(UploadedFile $uploadedFile): File
     {
-        $originalFilename = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME);
-        $safeFilename = $this->slugger->slug($originalFilename);
-        $fileName = $safeFilename . '-' . uniqid() . '.' . $uploadedFile->guessExtension();
+        $fileName = $this->generateFileName($uploadedFile);
 
         $file = new File($fileName, $uploadedFile->getMimeType(), $uploadedFile->getSize());
 
@@ -40,16 +39,28 @@ final readonly class FileUploader
 
     public function copy(string $filePath): File
     {
-        $fileSystem = new Filesystem();
+        $copyFile = new SymfonyFile($filePath);
+        $fileName = $this->generateFileName($copyFile);
+        $targetFile = $this->getPath($fileName);
 
-        $file = new SymfonyFile($filePath);
+        $file = new File($fileName, $copyFile->getMimeType(), $copyFile->getSize());
+
+        $this->getFilesystem()->copy($copyFile->getRealPath(), $targetFile);
+
+        return $file;
+    }
+
+    private function generateFileName(SymfonyFile $file): string
+    {
         do {
-            $targetPath = sys_get_temp_dir() . '/' . uniqid('avatar') . '.' . $file->getExtension();
-        } while ($fileSystem->exists($targetPath));
-        $fileSystem->copy($file->getRealPath(), $targetPath, true);
+            $originalPath = ($file instanceof UploadedFile ? $file->getClientOriginalName() : $file->getBasename());
+            $originalFilename = pathinfo($originalPath, PATHINFO_FILENAME);
+            $safeFilename = $this->slugger->slug($originalFilename);
+            $fileName = $safeFilename . '-' . uniqid() . '.' . $file->guessExtension();
+            $filePath = $this->getPath($fileName);
+        } while ($this->getFilesystem()->exists($filePath));
 
-        $file = new SymfonyFile($targetPath);
-        return $this->upload(new UploadedFile($file->getRealPath(), $file->getBasename(), $file->getMimeType(), test: true));
+        return $fileName;
     }
 
     public function getWebPath(File $file): string
@@ -65,6 +76,20 @@ final readonly class FileUploader
 
     public function getFilePath(File $file): string
     {
-        return $this->targetDirectory . '/' . $file->getName();
+        return $this->getPath($file->getName());
+    }
+
+    private function getPath(string $fileName): string
+    {
+        return $this->targetDirectory . '/' . $fileName;
+    }
+
+    private function getFilesystem(): Filesystem
+    {
+        if ($this->filesystem === null) {
+            $this->filesystem = new Filesystem();
+        }
+
+        return $this->filesystem;
     }
 }

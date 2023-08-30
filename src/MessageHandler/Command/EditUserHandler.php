@@ -8,7 +8,7 @@ use App\Message\Command\EditUserCommand;
 use App\Repository\UserRepository;
 use App\Services\FileUploader;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use RuntimeException;
 
 class EditUserHandler
 {
@@ -26,7 +26,7 @@ class EditUserHandler
     {
         $user = $this->userRepository->findOneBy(['id' => $message->userId]);
         if ($user === null) {
-            throw new NotFoundHttpException();
+            throw new RuntimeException("User with id ({$message->userId}) not found.");
         }
 
         $user->setName($message->name);

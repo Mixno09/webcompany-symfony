@@ -9,7 +9,6 @@ use App\Repository\CityRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Generator;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\DomCrawler\Crawler;
 
 final class CityControllerTest extends WebTestCase
 {
@@ -150,9 +149,8 @@ final class CityControllerTest extends WebTestCase
         $crawler = $client->submit($form, $formValues);
 
         $this->assertResponseIsSuccessful();
-        $actualResult = $crawler->filter('.cpsity h3')->each(
-            static fn (Crawler $node): string => $node->text()
-        );
+        $actualResult = $crawler->filter('.cpsity h3')->extract(['_text']);
+
         $this->assertEquals($expectedResult, $actualResult);
     }
 
@@ -175,28 +173,28 @@ final class CityControllerTest extends WebTestCase
         $cities[] = $city;
 
         $formValues = [
-            'sort' => 'name',
+            'orderBy' => 'name',
             'order' => 'ASC',
         ];
         $expectedResult = ['Brest', 'Grodno', 'Minsk'];
         yield [$cities, $formValues, $expectedResult];
 
         $formValues = [
-            'sort' => 'name',
+            'orderBy' => 'name',
             'order' => 'DESC',
         ];
         $expectedResult = ['Minsk', 'Grodno', 'Brest'];
         yield [$cities, $formValues, $expectedResult];
 
         $formValues = [
-            'sort' => 'idx',
+            'orderBy' => 'idx',
             'order' => 'ASC',
         ];
         $expectedResult = ['Grodno', 'Minsk', 'Brest'];
         yield [$cities, $formValues, $expectedResult];
 
         $formValues = [
-            'sort' => 'idx',
+            'orderBy' => 'idx',
             'order' => 'DESC',
         ];
         $expectedResult = ['Brest', 'Minsk', 'Grodno'];

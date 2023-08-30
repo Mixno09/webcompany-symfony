@@ -7,35 +7,39 @@
         <div class="postheader"></div>
         <div class="postcontent">
             <h2>Список городов</h2>
-
             {% if showForm %}
-                {{ form_start(formSort) }}
-                <div class="sortform">
-                    <div class="pole">
-                        <h3>Поле сортировки</h3>
-                        {% set input = formSort.sort %}
-                        {% for option in input.vars.choices %}
+                <form method="get">
+                    <div class="sortform">
+                        <div class="pole">
+                            <h3>Поле сортировки</h3>
                             <span>
-                                <input type="radio" name="{{ input.vars.full_name }}" value="{{ option.value }}" {% if (option is selectedchoice(input.vars.value)) %} checked {% endif %}>
-                                <b>{{ option.label }}</b>
+                                <input type="radio" name="orderBy" value="id" {% if data.orderBy == 'id' %} checked {% endif %}>
+                                <b>id</b>
                             </span>
-                        {% endfor %}
-                        {% set input = input.setRendered() %}
-                    </div>
-                    <div class="napr">
-                        <h3>Направление сортировки</h3>
-                        {% set order = formSort.order %}
-                        {% for option in order.vars.choices %}
                             <span>
-                                <input type="radio" name="{{ order.vars.full_name }}" value="{{ option.value }}" {% if (option is selectedchoice(order.vars.value)) %} checked {% endif %}>
-                                <b>{{ option.label }}</b>
+                                <input type="radio" name="orderBy" value="name" {% if data.orderBy == 'name' %} checked {% endif %}>
+                                <b>Название Города</b>
                             </span>
-                        {% endfor %}
-                        {% set order = order.setRendered() %}
+                            <span>
+                                <input type="radio" name="orderBy" value="idx" {% if data.orderBy == 'idx' %} checked {% endif %}>
+                                <b>Индекс Сортировки</b>
+                            </span>
+                        </div>
+                        <div class="napr">
+                            <h3>Направление сортировки</h3>
+                            <span>
+                                <input type="radio" name="order" value="ASC" {% if data.order == 'ASC' %} checked {% endif %}>
+                                <b>Возрастание</b>
+                            </span>
+                            <span>
+                                <input type="radio" name="order" value="DESC" {% if data.order == 'DESC' %} checked {% endif %}>
+                                <b>Убывание</b>
+                            </span>
+                        </div>
+                        <input type="submit" value="Сортировать">
+                        <input type="hidden" name="form" value="1">
                     </div>
-                {{ form_end(formSort) }}
-                    <input type="submit" value="Сортировать">
-                </div>
+                </form>
             {% else %}
                 <div class="form flrig">
                     <form action="{{ path('create_city') }}" method="get">

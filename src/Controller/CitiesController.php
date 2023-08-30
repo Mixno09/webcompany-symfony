@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
-use App\Entity\City;
-use App\Form\CitySortType;
 use App\Form\CityType;
+use App\Form\Dto\CityDto;
+use App\Message\Query\GetCitiesQuery;
+use App\MessageHandler\Command\CreateCityHandler;
+use App\MessageHandler\Command\EditCityHandler;
+use App\MessageHandler\Query\GetCitiesHandler;
 use App\Repository\CityRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,47 +27,66 @@ final class CitiesController extends AbstractController
     }
 
     #[Route('/', name: 'cities', methods: ['GET'])]
-    public function index(Request $request): Response
+    public function index(GetCitiesHandler $citiesHandler, Request $request): Response
     {
-        $orderBy = 'idx';
-        $order = 'ASC';
-
         $showForm = $request->query->has('form');
 
-        $formSort = $this->createForm(CitySortType::class, options: ['method' => 'GET']);
-        $formSort->handleRequest($request);
-        if ($formSort->isSubmitted() && $formSort->isValid()) {
-            $data = $formSort->getData();
-            $orderBy = $data['sort'];
-            $order = $data['order'];
-        }
+        $orderBy = $request->query->getString('orderBy');
+        $order = $request->query->getString('order');
 
-        $cities = $this->cityRepository->findAllCity($orderBy, $order);
+        $query = GetCitiesQuery::create($orderBy, $order);
+        $cities = $citiesHandler($query);
 
         return $this->render('cities/index.html.twig', [
             'cities' => $cities,
-            'formSort' => $formSort,
+            'data' => $query,
             'showForm' => $showForm,
         ]);
     }
 
     #[Route('/city/create', name: 'create_city', methods: ['GET', 'POST'])]
-    public function create(Request $request): Response
+    public function create(CreateCityHandler $createCityHandler, Request $request): Response
     {
-        $city = new City();
-
-        $form = $this->createForm(CityType::class, $city);
+        $form = $this->createForm(CityType::class);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->entityManager->persist($city);
-            $this->entityManager->flush();
+            /** @var CityDto $cityDto */
+            $cityDto = $form->getData();
+            $createCityCommand = $cityDto->makeCreateCityCommand();
+            $createCityHandler($createCityCommand);
 
             return $this->redirectToRoute('cities');
         }
 
         return $this->render('cities/create_city.html.twig', [
-            'form' => $form,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/city/{id}/edit', name: 'edit_city', methods: ['GET', 'POST'])]
+    public function edit(int $id, EditCityHandler $editCityHandler, Request $request): Response
+    {
+        $city = $this->cityRepository->findOneBy(['id' => $id]);
+        if ($city === null) {
+            throw $this->createNotFoundException();
+        }
+
+        $cityDto = CityDto::createFromCity($city);
+        $form = $this->createForm(CityType::class, $cityDto);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var CityDto $cityDto */
+            $cityDto = $form->getData();
+            $editCityCommand = $cityDto->makeEditCityCommand($city);
+            $editCityHandler($editCityCommand);
+
+            return $this->redirectToRoute('cities');
+        }
+
+        return $this->render('cities/edit_city.html.twig', [
+            'form' => $form->createView(),
         ]);
     }
 
@@ -85,28 +107,5 @@ final class CitiesController extends AbstractController
         $this->entityManager->flush();
 
         return $this->redirectToRoute('cities');
-    }
-
-    #[Route('/city/{id}/edit', name: 'edit_city', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request): Response
-    {
-        $city = $this->cityRepository->findOneBy(['id' => $id]);
-        if ($city === null) {
-            throw $this->createNotFoundException();
-        }
-
-        $form = $this->createForm(CityType::class, $city);
-
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->entityManager->persist($city);
-            $this->entityManager->flush();
-
-            return $this->redirectToRoute('cities');
-        }
-
-        return $this->render('cities/edit_city.html.twig', [
-            'form' => $form,
-        ]);
     }
 }

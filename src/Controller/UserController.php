@@ -3,13 +3,14 @@
 namespace App\Controller;
 
 use App\Form\Dto\UserDto;
-use App\Form\UserSortType;
 use App\Form\UserType;
 use App\Message\Command\DeleteUserCommand;
+use App\Message\Query\GetCitiesQuery;
 use App\Message\Query\GetUsersQuery;
 use App\MessageHandler\Command\CreateUserHandler;
 use App\MessageHandler\Command\DeleteUserHandler;
 use App\MessageHandler\Command\EditUserHandler;
+use App\MessageHandler\Query\GetCitiesHandler;
 use App\MessageHandler\Query\GetUsersHandler;
 use App\Repository\UserRepository;
 use App\Services\UserHelper;
@@ -21,23 +22,23 @@ use Symfony\Component\Routing\Annotation\Route;
 final class UserController extends AbstractController
 {
     #[Route('/user', name: 'users', methods: 'GET')]
-    public function index(Request $request, GetUsersHandler $getUsersHandler): Response
+    public function index(Request $request, GetUsersHandler $usersHandler, GetCitiesHandler $citiesHandler): Response
     {
         $showForm = $request->query->has('form');
+        $orderBy = $request->query->getString('orderBy');
+        $order = $request->query->getString('order');
+        $cityId = $request->query->getInt('cityId');
 
-        $query = new GetUsersQuery(GetUsersQuery::ORDER_BY_ID, GetUsersQuery::ORDER_ASC, null, null);
-        $formSort = $this->createForm(UserSortType::class, data: $query, options: ['method' => 'GET']);
+        $usersQuery = GetUsersQuery::create($orderBy, $order, cityId: $cityId);
+        $users = $usersHandler($usersQuery);
 
-        $formSort->handleRequest($request);
-        if ($formSort->isSubmitted() && $formSort->isValid()) {
-            $query = $formSort->getData();
-        }
-
-        $users = $getUsersHandler($query);
+        $citiesQuery = GetCitiesQuery::create(GetCitiesQuery::ORDER_BY_IDX, GetCitiesQuery::ORDER_ASC);
+        $cities = $citiesHandler($citiesQuery);
 
         return $this->render('user/index.html.twig', [
             'users' => $users,
-            'formSort' => $formSort,
+            'cities' => $cities,
+            'data' => $usersQuery,
             'showForm' => $showForm,
         ]);
     }
@@ -58,7 +59,7 @@ final class UserController extends AbstractController
         }
 
         return $this->render('user/create_user.html.twig', [
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
@@ -122,7 +123,7 @@ final class UserController extends AbstractController
             return $this->render('user/search.html.twig');
         }
 
-        $query = new GetUsersQuery(
+        $query = GetUsersQuery::create(
             GetUsersQuery::ORDER_BY_ID,
             GetUsersQuery::ORDER_ASC,
             $searchText,

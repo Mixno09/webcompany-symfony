@@ -12,25 +12,29 @@
                 <div class="sortform">
                     <div class="pole">
                         <h3>Поле сортировки</h3>
-                        {% set input = formSort.sort %}
-                        {% for option in input.vars.choices %}
                         <span>
-                            <input type="radio" name="{{ input.vars.full_name }}" value="{{ option.value }}" {% if (option is selectedchoice(input.vars.value)) %} checked {% endif %} form="formSort">
-                            <b>{{ option.label }}</b>
+                            <input type="radio" name="orderBy" value="id" {% if data.orderBy == 'id' %} checked {% endif %} form="formSort">
+                            <b>id</b>
                         </span>
-                        {% endfor %}
-                        {% set input = input.setRendered() %}
+                        <span>
+                            <input type="radio" name="orderBy" value="name" {% if data.orderBy == 'name' %} checked {% endif %} form="formSort">
+                            <b>Имя</b>
+                        </span>
+                        <span>
+                            <input type="radio" name="orderBy" value="surname" {% if data.orderBy == 'surname' %} checked {% endif %} form="formSort">
+                            <b>Фамилия</b>
+                        </span>
                     </div>
                     <div class="napr">
                         <h3>Направление сортировки</h3>
-                        {% set input = formSort.order %}
-                        {% for option in input.vars.choices %}
                         <span>
-                            <input type="radio" name="{{ input.vars.full_name }}" value="{{ option.value }}" {% if (option is selectedchoice(input.vars.value)) %} checked {% endif %} form="formSort">
-                            <b>{{ option.label }}</b>
+                            <input type="radio" name="order" value="ASC" {% if data.order == 'ASC' %} checked {% endif %} form="formSort">
+                            <b>Возрастание</b>
                         </span>
-                        {% endfor %}
-                        {% set input = input.setRendered() %}
+                        <span>
+                            <input type="radio" name="order" value="DESC" {% if data.order == 'DESC' %} checked {% endif %} form="formSort">
+                            <b>Убывание</b>
+                        </span>
                     </div>
                     <input type="submit" value="Сортировать" form="formSort">
                     <input type="hidden" name="form" value="1" form="formSort">
@@ -42,21 +46,22 @@
                 <form action="{{ path('create_user') }}" method="get">
                     <input type="submit" value="Добавить">
                 </form>
-                <button type="submit" name="form" value="1" form="formSort">Сортировать</button>
+                {% if showForm == false %}
+                    <button type="submit" name="form" value="1" form="formSort">Сортировать</button>
+                {% endif %}
             </div>
             <!--Создадим выпадающий список "Города"-->
             <div class="filter">
                 <h3>Фильтр по Городам</h3>
-                {{ form_start(formSort, {'attr': {'id': 'formSort'}}) }}
-                    {% set input = formSort.sortByCity %}
-                    <select size="1" name="{{ input.vars.full_name }}">
+                <form id="formSort" method="get">
+                    <select size="1" name="cityId">
                         <option value="">Выберите город</option>
-                        {% for option in input.vars.choices %}
-                            <option value="{{ option.value }}" {% if (option is selectedchoice(input.vars.value)) %} selected {% endif %}>{{ option.label }}</option>
+                        {% for city in cities %}
+                            <option value="{{ city.id }}" {% if data.cityId == city.id %} selected {% endif %}>{{ city.name }}</option>
                         {% endfor %}
+                        <input type="submit" onclick="hhh()" value="Показать">
                     </select>
-                    <input type="submit" onclick="hhh()" value="Показать">
-                {{ form_end(formSort, {'render_rest': false}) }}
+                </form>
             </div>
 
             {% for user in users %}
@@ -74,7 +79,6 @@
                         <input type="hidden" name="token" value="{{ csrf_token('delete_user') }}">
                         <input type="submit" value="Удалить" onclick="return confirm('Вы действительно хотите удалить пользователя?')">
                     </form>
-
 
                     <form action="{{ path('edit_user', {'id': user.userId}) }}" method="get">
                         <input type="submit" value="Редактировать">
