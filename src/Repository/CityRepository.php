@@ -20,6 +20,15 @@ class CityRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, City::class);
     }
+
+    public function getCityByName(string $cityName): ?City
+    {
+        return $this->createQueryBuilder('c')
+            ->where('LOWER(c.name) = LOWER(:name)')
+            ->setParameter('name', $cityName)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 //    /**
 //     * @return City[] Returns an array of City objects
 //     */

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Entity\File;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File as SymfonyFile;
@@ -17,13 +18,16 @@ final class FileUploader
     private readonly string $targetDirectory;
     private readonly SluggerInterface $slugger;
     private ?Filesystem $filesystem = null;
+    private LoggerInterface $logger;
 
     public function __construct(
         #[Autowire(value: '%kernel.project_dir%/public/uploads')] string $targetDirectory,
-        SluggerInterface $slugger,
+        SluggerInterface                                                 $slugger,
+        LoggerInterface                                                  $logger,
     ) {
         $this->slugger = $slugger;
         $this->targetDirectory = $targetDirectory;
+        $this->logger = $logger;
     }
 
     public function upload(UploadedFile $uploadedFile): File
@@ -71,7 +75,12 @@ final class FileUploader
     public function delete(File $file): void
     {
         $fileName = $this->getFilePath($file);
-        unlink($fileName);
+
+        if (file_exists($fileName)) {
+            unlink($fileName);
+        } else {
+            $this->logger->warning("Файл \"{$fileName}\" не найден при удалении.");
+        }
     }
 
     public function getFilePath(File $file): string

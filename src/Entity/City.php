@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CityRepository::class)]
-class City
+class City //todo implement __construct()
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
