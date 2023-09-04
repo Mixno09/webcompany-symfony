@@ -9,7 +9,6 @@ use App\Services\FileUploader;
 use App\ViewModel\UserListItem;
 use Doctrine\ORM\Query;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use function addcslashes;
 use function array_column;
 use function array_filter;
 use function array_key_exists;

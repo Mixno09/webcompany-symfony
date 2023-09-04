@@ -9,15 +9,14 @@ use App\Entity\User;
 use App\Message\Command\CreateUserCommand;
 use App\Message\Command\EditUserCommand;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use App\Validator\User\Compound as AssertCompound;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final class UserDto
 {
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 3, max: 255)]
+    #[AssertCompound\UserNameCompound]
     public ?string $name = null;
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 3, max: 255)]
+    #[AssertCompound\UserSurNameCompound]
     public ?string $surName = null;
     #[Assert\NotBlank]
     public ?City $city = null;

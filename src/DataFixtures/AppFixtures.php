@@ -36,21 +36,15 @@ final class AppFixtures extends Fixture
     {
         $cities = [];
 
-        $city = new City();
-        $city->setName('Minsk');
-        $city->setIdx(10);
+        $city = new City('Minsk', 10);
         $manager->persist($city);
         $cities['minsk'] = $city;
 
-        $city = new City();
-        $city->setName('Brest');
-        $city->setIdx(5);
+        $city = new City('Brest', 5);
         $manager->persist($city);
         $cities['brest'] = $city;
 
-        $city = new City();
-        $city->setName('Grodno');
-        $city->setIdx(0);
+        $city = new City('Grodno', 0);
         $manager->persist($city);
         $cities['grodno'] = $city;
 

@@ -56,9 +56,7 @@ final class CityControllerTest extends WebTestCase
 
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
-        $city = new City();
-        $city->setName('Minsk');
-        $city->setIdx(17);
+        $city = new City('Minsk', 17);
 
         $entityManager->persist($city);
         $entityManager->flush();
@@ -91,8 +89,7 @@ final class CityControllerTest extends WebTestCase
     {
         $client = self::createClient();
 
-        $city = new City();
-        $city->setName('Minsk');
+        $city = new City('Minsk');
 
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $entityManager->persist($city);
@@ -157,19 +154,13 @@ final class CityControllerTest extends WebTestCase
     public function getSortFieldAndSortDirection(): Generator
     {
         $cities = [];
-        $city = new City();
-        $city->setName('Minsk');
-        $city->setIdx(10);
+        $city = new City('Minsk', 10);
         $cities[] = $city;
 
-        $city = new City();
-        $city->setName('Grodno');
-        $city->setIdx(7);
+        $city = new City('Grodno', 7);
         $cities[] = $city;
 
-        $city = new City();
-        $city->setName('Brest');
-        $city->setIdx(15);
+        $city = new City('Brest', 15);
         $cities[] = $city;
 
         $formValues = [

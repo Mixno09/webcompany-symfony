@@ -19,9 +19,7 @@ final class CreateCityHandler
 
     public function __invoke(CreateCityCommand $message): void
     {
-        $city = new City();
-        $city->setName($message->name);
-        $city->setIdx($message->idx);
+        $city = new City($message->name, $message->idx);
 
         $this->entityManager->persist($city);
         $this->entityManager->flush();

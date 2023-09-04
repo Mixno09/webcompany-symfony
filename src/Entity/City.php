@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CityRepository::class)]
-class City //todo implement __construct()
+class City
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -23,6 +23,22 @@ class City //todo implement __construct()
     #[ORM\Column(type: Types::SMALLINT, options: ['unsigned' => true])]
     private int $idx = 0;
 
+    public function __construct(string $name, int $idx = 0)
+    {
+        $this->name = $name;
+        $this->idx = $idx;
+    }
+
+    public function setName(string $name): void
+    {
+        $this->name = $name;
+    }
+
+    public function setIdx(int $idx): void
+    {
+        $this->idx = $idx;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -33,22 +49,8 @@ class City //todo implement __construct()
         return $this->name;
     }
 
-    public function setName(string $name): static
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
     public function getIdx(): int
     {
         return $this->idx;
-    }
-
-    public function setIdx(int $idx): static
-    {
-        $this->idx = $idx;
-
-        return $this;
     }
 }

@@ -7,23 +7,24 @@ use App\Message\Command\CreateUserCommand as CreateUserMassageCommand;
 use App\MessageHandler\Command\CreateUserHandler;
 use App\Repository\CityRepository;
 use App\Validator\CityNameExists;
+use App\Validator\User\Compound\UserNameCompound;
+use App\Validator\User\Compound\UserSurNameCompound;
 use Doctrine\ORM\EntityManagerInterface;
-use RuntimeException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsCommand(
     name: 'app:create-user',
     description: 'Команда для создания нового пользователя',
 )]
-class CreateUserCommand extends Command
+final class CreateUserCommand extends Command
 {
     private EntityManagerInterface $entityManager;
     private CityRepository $cityRepository;
@@ -44,13 +45,15 @@ class CreateUserCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $question = new Question('Введите имя'); //todo сделать через compound
-        $question->setValidator($this->getNameValidation(...));
+        $question = new Question('Введите имя');
+        $validator = Validation::createCallable($this->validator, new UserNameCompound());
+        $question->setValidator($validator);
         $question->setMaxAttempts(5);
         $name = $io->askQuestion($question);
 
         $question = new Question('Введите фамилию');
-        $question->setValidator($this->getSurNameValidation(...));
+        $validator = Validation::createCallable($this->validator, new UserSurNameCompound());
+        $question->setValidator($validator);
         $question->setMaxAttempts(5);
         $surname = $io->askQuestion($question);
 
@@ -85,29 +88,5 @@ class CreateUserCommand extends Command
             ->setMaxResults(10)
             ->setParameter('name', $name . '%')
             ->getSingleColumnResult();
-    }
-
-    private function getNameValidation(?string $answer): string
-    {
-        if ($answer === null) {
-            throw new RuntimeException('Имя не должно быть пустым.');
-        }
-        if (! is_string($answer) || strlen(trim($answer)) < 3) {
-            throw new RuntimeException("Значение слишком короткое. Должно быть равно 3 символам или больше.");
-        }
-
-        return $answer;
-    }
-
-    private function getSurNameValidation(?string $answer): string
-    {
-        if ($answer === null) {
-            throw new RuntimeException('Фамилия не должна быть пустой.');
-        }
-        if (! is_string($answer) || strlen(trim($answer)) < 3) {
-            throw new RuntimeException("Значение слишком короткое. Должно быть равно 3 символам или больше.");
-        }
-
-        return $answer;
     }
 }

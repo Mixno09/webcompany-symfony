@@ -34,9 +34,7 @@ final class UserControllerTest extends WebTestCase
 
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
-        $city = new City();
-        $city->setName('Minsk');
-        $city->setIdx(1);
+        $city = new City('Minsk', 1);
         $entityManager->persist($city);
         $entityManager->flush();
 
@@ -77,14 +75,10 @@ final class UserControllerTest extends WebTestCase
         /** @var FileUploader $fileUploader */
         $fileUploader = self::getContainer()->get(FileUploader::class);
 
-        $city = new City();
-        $city->setName('Minsk');
-        $city->setIdx(1);
+        $city = new City('Minsk', 1);
         $entityManager->persist($city);
 
-        $newCity = new City();
-        $newCity->setName('Brest');
-        $newCity->setIdx(10);
+        $newCity = new City('Brest', 10);
         $entityManager->persist($newCity);
 
         $user = new User('Mixail', 'Sokolov', $city);
@@ -134,9 +128,7 @@ final class UserControllerTest extends WebTestCase
         /** @var FileUploader $fileUploader */
         $fileUploader = self::getContainer()->get(FileUploader::class);
 
-        $city = new City();
-        $city->setName('Minsk');
-        $city->setIdx(1);
+        $city = new City('Minsk', 1);
         $entityManager->persist($city);
 
         $user = new User('Mixail', 'Sokolov', $city);
@@ -197,23 +189,17 @@ final class UserControllerTest extends WebTestCase
     {
         $users = [];
 
-        $city = new City();
-        $city->setName('Brest');
-        $city->setIdx(1);
+        $city = new City('Brest', 1);
 
         $user = new User('Andrey', 'Andreev', $city);
         $users[] = $user;
 
-        $city = new City();
-        $city->setName('Grodno');
-        $city->setIdx(2);
+        $city = new City('Grodno', 2);
 
         $user = new User('Boris', 'Borisov', $city);
         $users[] = $user;
 
-        $city = new City();
-        $city->setName('Minsk');
-        $city->setIdx(3);
+        $city = new City('Minsk', 3);
 
         $user = new User('Dima', 'Dmitriev', $city);
         $users[] = $user;

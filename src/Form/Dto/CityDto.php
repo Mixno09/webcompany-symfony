@@ -7,15 +7,13 @@ namespace App\Form\Dto;
 use App\Entity\City;
 use App\Message\Command\CreateCityCommand;
 use App\Message\Command\EditCityCommand;
-use Symfony\Component\Validator\Constraints as Assert;
+use App\Validator\City\Compound as AssertCompound;
 
 final class CityDto
 {
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 3, max: 255)]
+    #[AssertCompound\CityNameCompound]
     public string $name;
-    #[Assert\NotBlank]
-    #[Assert\Range(min: 0, max: 65535)]
+    #[AssertCompound\CityIdxCompound]
     public int $idx;
 
     public static function createFromCity(City $city): self
