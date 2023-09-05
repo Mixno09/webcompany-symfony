@@ -14,8 +14,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class UserDto
 {
+    #[Assert\NotBlank]
     #[AssertCompound\UserNameCompound]
     public ?string $name = null;
+    #[Assert\NotBlank]
     #[AssertCompound\UserSurNameCompound]
     public ?string $surName = null;
     #[Assert\NotBlank]

@@ -8,11 +8,14 @@ use App\Entity\City;
 use App\Message\Command\CreateCityCommand;
 use App\Message\Command\EditCityCommand;
 use App\Validator\City\Compound as AssertCompound;
+use Symfony\Component\Validator\Constraints as Assert;
 
 final class CityDto
 {
+    #[Assert\NotBlank]
     #[AssertCompound\CityNameCompound]
     public string $name;
+    #[Assert\NotBlank]
     #[AssertCompound\CityIdxCompound]
     public int $idx;
 

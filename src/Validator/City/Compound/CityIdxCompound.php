@@ -13,7 +13,6 @@ class CityIdxCompound extends Compound
     protected function getConstraints(array $options): array
     {
         return [
-            new Assert\NotBlank(),
             new Assert\Type('numeric'),
             new Assert\Range(['min' => 0, 'max' => 65535]),
         ];

@@ -16,15 +16,16 @@ use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[AsCommand(
-    name: 'app:create-city',
+    name: 'app:city:create',
     description: 'Команда для создания нового города',
 )]
-final class CreateCityCommand extends Command
+final class CityCreateCommand extends Command
 {
-    private CreateCityHandler $cityHandler;
-    private ValidatorInterface $validator;
+    private readonly CreateCityHandler $cityHandler;
+    private readonly ValidatorInterface $validator;
 
     public function __construct(CreateCityHandler $cityHandler, ValidatorInterface $validator)
     {
@@ -39,13 +40,19 @@ final class CreateCityCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $question = new Question('Введите имя');
-        $validator = Validation::createCallable($this->validator, new CityNameCompound());
+        $validator = Validation::createCallable($this->validator,
+            new Assert\NotBlank(),
+            new CityNameCompound(),
+        );
         $question->setValidator($validator);
         $question->setMaxAttempts(5);
         $name = $io->askQuestion($question);
 
         $question = new Question('Введите индекс сортировки');
-        $validator = Validation::createCallable($this->validator, new CityIdxCompound());
+        $validator = Validation::createCallable($this->validator,
+            new Assert\NotBlank(),
+            new CityIdxCompound(),
+        );
         $question->setValidator($validator);
         $question->setMaxAttempts(5);
         $idx = $io->askQuestion($question);

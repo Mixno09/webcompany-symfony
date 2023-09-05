@@ -13,7 +13,6 @@ final class UserNameCompound extends Compound
     protected function getConstraints(array $options): array
     {
         return [
-            new Assert\NotBlank(),
             new Assert\Type('string'),
             new Assert\Length(['min' => 3, 'max' => 255]),
         ];

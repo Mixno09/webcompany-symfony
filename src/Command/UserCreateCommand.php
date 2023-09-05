@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Command\Question\CityQuestionFactory;
 use App\Entity\City;
 use App\Message\Command\CreateUserCommand as CreateUserMassageCommand;
 use App\MessageHandler\Command\CreateUserHandler;
@@ -21,24 +22,24 @@ use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsCommand(
-    name: 'app:create-user',
+    name: 'app:user:create',
     description: 'Команда для создания нового пользователя',
 )]
-final class CreateUserCommand extends Command
+final class UserCreateCommand extends Command
 {
-    private EntityManagerInterface $entityManager;
-    private CityRepository $cityRepository;
-    private CreateUserHandler $userHandler;
-    private ValidatorInterface $validator;
+    private readonly CityRepository $cityRepository;
+    private readonly CreateUserHandler $userHandler;
+    private readonly ValidatorInterface $validator;
+    private readonly CityQuestionFactory $cityQuestionFactory;
 
-    public function __construct(EntityManagerInterface $entityManager, CityRepository $cityRepository, CreateUserHandler $userHandler, ValidatorInterface $validator)
+    public function __construct(CityRepository $cityRepository, CreateUserHandler $userHandler, ValidatorInterface $validator, CityQuestionFactory $cityQuestionFactory)
     {
-        $this->entityManager = $entityManager;
         $this->cityRepository = $cityRepository;
-
-        parent::__construct();
         $this->userHandler = $userHandler;
         $this->validator = $validator;
+        $this->cityQuestionFactory = $cityQuestionFactory;
+
+        parent::__construct();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -46,26 +47,31 @@ final class CreateUserCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $question = new Question('Введите имя');
-        $validator = Validation::createCallable($this->validator, new UserNameCompound());
+        $validator = Validation::createCallable($this->validator,
+            new Assert\NotBlank(),
+            new UserNameCompound(),
+        );
         $question->setValidator($validator);
         $question->setMaxAttempts(5);
         $name = $io->askQuestion($question);
 
         $question = new Question('Введите фамилию');
-        $validator = Validation::createCallable($this->validator, new UserSurNameCompound());
+        $validator = Validation::createCallable($this->validator,
+            new Assert\NotBlank(),
+            new UserSurNameCompound(),
+        );
         $question->setValidator($validator);
         $question->setMaxAttempts(5);
         $surname = $io->askQuestion($question);
 
-        $question = new Question('Выберете город');
-        $question->setAutocompleterCallback($this->getCities(...));
+        $question = $this->cityQuestionFactory->createQuestion('Выберете город');
 
-        $validation = Validation::createCallable(
+        $validator = Validation::createCallable(
             $this->validator,
             new Assert\NotBlank(),
             new CityNameExists(),
         );
-        $question->setValidator($validation);
+        $question->setValidator($validator);
         $question->setMaxAttempts(5);
         $cityName = $io->askQuestion($question);
 
@@ -76,17 +82,5 @@ final class CreateUserCommand extends Command
 
         $io->success('Пользователь создан!');
         return Command::SUCCESS;
-    }
-
-    private function getCities(string $name): array
-    {
-        return $this->entityManager->createQueryBuilder()
-            ->select('LOWER(c.name)')
-            ->from(City::class, 'c')
-            ->where('LOWER(c.name) LIKE LOWER(:name)')
-            ->getQuery()
-            ->setMaxResults(10)
-            ->setParameter('name', $name . '%')
-            ->getSingleColumnResult();
     }
 }
