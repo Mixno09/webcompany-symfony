@@ -51,7 +51,7 @@ final class UserDeleteCommand extends Command
         $this->entityManager->remove($user);
         $this->entityManager->flush();
 
-        $io->success('Пользователь успешно удалён.');
+        $io->success('Пользователь успешно удалён!');
 
         return Command::SUCCESS;
     }

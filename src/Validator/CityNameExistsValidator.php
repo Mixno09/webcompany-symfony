@@ -19,7 +19,7 @@ class CityNameExistsValidator extends ConstraintValidator
     }
 
     /* @var \App\Validator\CityNameExists $constraint */
-    public function validate(mixed $value, Constraint $constraint)
+    public function validate(mixed $value, Constraint $constraint): void
     {
         if (! $constraint instanceof CityNameExists) {
             throw new UnexpectedTypeException($constraint, CityNameExists::class);

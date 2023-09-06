@@ -16,10 +16,10 @@ class User
     private string $name;
     #[ORM\Column(length: 255)]
     private string $surName;
-    #[ORM\ManyToOne(targetEntity: City::class)]
+    #[ORM\ManyToOne(targetEntity: City::class, fetch: 'EAGER')] //todo лучше так не делать?
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?City $city;
-    #[ORM\OneToOne(targetEntity: File::class)]
+    #[ORM\OneToOne(targetEntity: File::class, fetch: 'EAGER')] //todo
     private ?File $avatar = null;
 
     public function __construct(string $name, string $surName, ?City $city)

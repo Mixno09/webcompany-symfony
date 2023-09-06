@@ -19,7 +19,7 @@ class UserNameExistsValidator extends ConstraintValidator
     }
 
     /* @var \App\Validator\UserNameExists $constraint */
-    public function validate(mixed $value, Constraint $constraint)
+    public function validate(mixed $value, Constraint $constraint): void
     {
         if (! $constraint instanceof UserNameExists) {
             throw new UnexpectedTypeException($constraint, UserNameExists::class);
