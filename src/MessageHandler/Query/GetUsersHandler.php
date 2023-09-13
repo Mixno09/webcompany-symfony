@@ -7,6 +7,7 @@ use App\Message\Query\GetUsersQuery;
 use App\Repository\UserRepository;
 use App\Services\FileUploader;
 use App\ViewModel\UserListItem;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final readonly class GetUsersHandler
@@ -57,8 +58,8 @@ final readonly class GetUsersHandler
         }
 
         $query = $queryBuilder->getQuery();
-//        $query->setFetchMode(User::class, 'city', ClassMetadataInfo::FETCH_EAGER); todo
-//        $query->setFetchMode(User::class, 'avatar', ClassMetadataInfo::FETCH_EAGER); todo
+        $query->setFetchMode(User::class, 'city', ClassMetadataInfo::FETCH_EAGER);
+        $query->setFetchMode(User::class, 'avatar', ClassMetadataInfo::FETCH_EAGER);
         /** @var User[] $result */
         $result = $query->getResult();
 

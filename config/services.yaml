@@ -21,5 +21,19 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    user.admin:
+        class: App\Admin\UserAdmin
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\User, manager_type: orm, group: 'Пользователи', label: 'User',  }
+
+    city.admin:
+        class: App\Admin\CityAdmin
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\City, manager_type: orm, group: 'Города', label: 'City' }
+
+    file.admin:
+        class: App\Admin\FileAdmin
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\File, manager_type: orm, group: 'Изображения', label: 'File' }
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
