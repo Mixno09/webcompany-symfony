@@ -5,24 +5,28 @@ declare(strict_types=1);
 namespace App\DataFixtures;
 
 use App\Entity\City;
+use App\Entity\SonataMediaMedia;
 use App\Entity\User;
-use App\Services\FileUploader;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use Sonata\MediaBundle\Model\MediaManagerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final class AppFixtures extends Fixture
 {
-    private FileUploader $fileUploader;
+    private MediaManagerInterface $mediaManager;
 
-    public function __construct(FileUploader $fileUploader)
-    {
-        $this->fileUploader = $fileUploader;
+    public function __construct(
+        #[Autowire(service: 'sonata.media.manager.media')] MediaManagerInterface $mediaManager,
+    ) {
+        $this->mediaManager = $mediaManager;
     }
 
     public function load(ObjectManager $manager): void
     {
         $cities = $this->loadCities($manager);
-        $avatars = $this->loadAvatars($manager);
+        $avatars = $this->loadAvatars();
 
         $this->loadUsers($manager, $cities, $avatars);
 
@@ -53,44 +57,53 @@ final class AppFixtures extends Fixture
 
     /**
      * @param array<string, \App\Entity\City> $cities
-     * @param array<string, \App\Entity\File> $avatars
+     * @param array<string, \App\Entity\SonataMediaMedia> $avatars
      */
     private function loadUsers(ObjectManager $manager, array $cities, array $avatars): void
     {
         $user = new User('Mixail', 'Ivanov', $cities['minsk']);
-        $user->setAvatar($avatars['avatar-1']);
+        $user->setMedia($avatars['avatar-1']);
         $manager->persist($user);
 
         $user = new User('Nikolay', 'Turchak', $cities['brest']);
-        $user->setAvatar($avatars['avatar-2']);
+        $user->setMedia($avatars['avatar-2']);
         $manager->persist($user);
 
         $user = new User('Eugeniy', 'Undra', $cities['grodno']);
-        $user->setAvatar($avatars['avatar-3']);
+        $user->setMedia($avatars['avatar-3']);
         $manager->persist($user);
 
         $user = new User('Alexey', 'Gavrilou', null);
         $manager->persist($user);
     }
 
-    /**
-     * @return array<string, \App\Entity\File>
-     */
-    private function loadAvatars(ObjectManager $manager): array
+    private function loadAvatars(): array
     {
         $avatars = [];
 
-        $avatar = $this->fileUploader->copy(__DIR__ . '/avatars/avatar-1.jpg');
-        $manager->persist($avatar);
-        $avatars['avatar-1'] = $avatar;
+        $media = new SonataMediaMedia();
+        $media->setBinaryContent(new UploadedFile(__DIR__ . '/avatars/avatar-1.jpg', 'avatar-1.jpg'));
+        $media->setContext('user');
+        $media->setProviderName('sonata.media.provider.image');
 
-        $avatar = $this->fileUploader->copy(__DIR__ . '/avatars/avatar-2.jpg');
-        $manager->persist($avatar);
-        $avatars['avatar-2'] = $avatar;
+        $this->mediaManager->save($media);
+        $avatars['avatar-1'] = $media;
 
-        $avatar = $this->fileUploader->copy(__DIR__ . '/avatars/avatar-3.jpg');
-        $manager->persist($avatar);
-        $avatars['avatar-3'] = $avatar;
+        $media = new SonataMediaMedia();
+        $media->setBinaryContent(new UploadedFile(__DIR__ . '/avatars/avatar-2.jpg', 'avatar-2.jpg'));
+        $media->setContext('user');
+        $media->setProviderName('sonata.media.provider.image');
+
+        $this->mediaManager->save($media);
+        $avatars['avatar-2'] = $media;
+
+        $media = new SonataMediaMedia();
+        $media->setBinaryContent(new UploadedFile(__DIR__ . '/avatars/avatar-3.jpg', 'avatar-3.jpg'));
+        $media->setContext('user');
+        $media->setProviderName('sonata.media.provider.image');
+
+        $this->mediaManager->save($media);
+        $avatars['avatar-3'] = $media;
 
         return $avatars;
     }

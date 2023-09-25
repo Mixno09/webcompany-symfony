@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\ViewModel;
 
+use Sonata\MediaBundle\Model\Media;
+
 final readonly class UserListItem
 {
     public function __construct(
@@ -11,6 +13,6 @@ final readonly class UserListItem
         public string $name,
         public string $surName,
         public ?string $cityName,
-        public string $avatar,
+        public Media|string $avatar,
     ) {}
 }

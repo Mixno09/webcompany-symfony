@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Sonata\MediaBundle\Model\Media;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User
@@ -13,20 +14,26 @@ class User
     #[ORM\Column(options: ['unsigned' => true])]
     private ?int $id = null;
     #[ORM\Column(length: 255)]
-    private string $name;
+    private string $name = '';
     #[ORM\Column(length: 255)]
-    private string $surName;
+    private string $surName = '';
     #[ORM\ManyToOne(targetEntity: City::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
-    private ?City $city;
-    #[ORM\OneToOne(targetEntity: File::class)]
-    private ?File $avatar = null;
+    private ?City $city = null;
+    #[ORM\OneToOne(targetEntity: SonataMediaMedia::class, cascade: ['all'], orphanRemoval: true)]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?Media $media = null;
 
     public function __construct(string $name, string $surName, ?City $city)
     {
         $this->name = $name;
         $this->surName = $surName;
         $this->city = $city;
+    }
+
+    public function __toString(): string
+    {
+        return $this->getName() ?: '';
     }
 
     public function getId(): ?int
@@ -64,13 +71,13 @@ class User
         $this->city = $city;
     }
 
-    public function getAvatar(): ?File
+    public function getMedia(): ?Media
     {
-        return $this->avatar;
+        return $this->media;
     }
 
-    public function setAvatar(File $avatar): void
+    public function setMedia(?Media $media): void
     {
-        $this->avatar = $avatar;
+        $this->media = $media;
     }
 }

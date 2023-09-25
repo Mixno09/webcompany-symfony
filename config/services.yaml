@@ -24,16 +24,22 @@ services:
     user.admin:
         class: App\Admin\UserAdmin
         tags:
-            - { name: sonata.admin, model_class: App\Entity\User, manager_type: orm, group: 'Пользователи', label: 'User',  }
+            - { name: sonata.admin, model_class: App\Entity\User, manager_type: orm, label: 'Users'}
 
     city.admin:
         class: App\Admin\CityAdmin
         tags:
-            - { name: sonata.admin, model_class: App\Entity\City, manager_type: orm, group: 'Города', label: 'City' }
+            - { name: sonata.admin, model_class: App\Entity\City, manager_type: orm, label: 'Cities'}
 
     file.admin:
         class: App\Admin\FileAdmin
         tags:
-            - { name: sonata.admin, model_class: App\Entity\File, manager_type: orm, group: 'Изображения', label: 'File' }
+            - { name: sonata.admin, model_class: App\Entity\File, manager_type: orm, label: 'File' }
+
+    admin.sonata_media_media:
+        class: App\Admin\SonataMediaMediaAdmin
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\SonataMediaMedia, manager_type: orm, label: 'UserAvatar' }
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

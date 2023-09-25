@@ -65,9 +65,8 @@ final readonly class GetUsersHandler
 
         $items = [];
         foreach ($result as $user) {
-            $avatar = $user->getAvatar();
-            $avatarWebPath = ($avatar !== null ? $this->fileUploader->getWebPath($avatar) : $this->userAvatarPlaceholder);
-            $items[] = new UserListItem($user->getId(), $user->getName(), $user->getSurName(), $user->getCity()?->getName(), $avatarWebPath);
+            $avatar = ($user->getMedia() ?? $this->userAvatarPlaceholder);
+            $items[] = new UserListItem($user->getId(), $user->getName(), $user->getSurName(), $user->getCity()?->getName(), $avatar);
         }
 
         return $items;

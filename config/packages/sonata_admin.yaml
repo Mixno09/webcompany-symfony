@@ -1,6 +1,23 @@
 sonata_admin:
     title: 'Sonata Admin'
     dashboard:
+        groups:
+            user:
+                label: 'Пользователи'
+                icon: 'fas fa-box'
+                items:
+                    - user.admin
+            city:
+                label: 'Города'
+                icon: 'fas fa-city'
+                items:
+                    - city.admin
+            image:
+                label: 'Изображения'
+                icon: 'fas fa-image'
+                items:
+                    - admin.sonata_media_media
+
         blocks:
             - { type: sonata.admin.block.admin_list, position: left }
     security:

@@ -8,8 +8,8 @@ use App\Entity\City;
 use App\Entity\User;
 use App\Message\Command\CreateUserCommand;
 use App\Message\Command\EditUserCommand;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use App\Validator\User\Compound as AssertCompound;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final class UserDto
@@ -22,8 +22,13 @@ final class UserDto
     public ?string $surName = null;
     #[Assert\NotBlank]
     public ?City $city = null;
-    #[Assert\File(maxSize: '1024k', extensions: ['jpg', 'png'])]
-    public ?UploadedFile $file = null;
+    #[Assert\File(
+        maxSize: '1024K',
+        mimeTypes: ['image/pjpeg', 'image/jpeg', 'image/png', 'image/x-png'],
+        extensions: ['png', 'jpeg', 'jpg'],
+        extensionsMessage: "Недопустимое расширение файла {{ extension }}. Разрешенные расширения {{ extensions }}.",
+    )]
+    public ?UploadedFile $media = null;
 
     public static function createFromUser(User $user): self
     {
@@ -37,11 +42,11 @@ final class UserDto
 
     public function makeCreateUserCommand(): CreateUserCommand
     {
-        return new CreateUserCommand($this->name, $this->surName, $this->city, $this->file);
+        return new CreateUserCommand($this->name, $this->surName, $this->city, $this->media);
     }
 
     public function makeEditUserCommand(User $user): EditUserCommand
     {
-        return new EditUserCommand($user->getId(), $this->name, $this->surName, $this->city, $this->file);
+        return new EditUserCommand($user->getId(), $this->name, $this->surName, $this->city, $this->media);
     }
 }

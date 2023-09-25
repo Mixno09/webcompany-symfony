@@ -22,9 +22,10 @@ class UserType extends AbstractType
                 'class' => City::class,
                 'choice_label' => 'name',
             ])
-            ->add('file', FileType::class, [
+            ->add('media', FileType::class, [
                 'required' => false,
-            ]);
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

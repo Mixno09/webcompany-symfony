@@ -1,0 +1,28 @@
+{% block sonata_media_type_widget %}
+    <div class="row">
+        {% if media is not null and media.providerReference %}
+            <div class="col-md-4 pull-left">
+                <div class="pull-left" style="margin-right: 5px">
+                    {% if media.id is not null %}
+                        {{ sonata_thumbnail(media, 'admin', {'class': 'img-polaroid media-object'}) }}
+                    {% endif %}
+                    <strong>{{ media.name }}</strong>
+                </div>
+            </div>
+        {% endif %}
+        <div class="col-md-2 pull-left">
+            {{ block('form_widget') }}
+        </div>
+        <div class="col-md-6 pull-right" style="text-align: center">
+            {% if media is not null and media.providerReference %}
+                <strong>{{ 'widget_label_type'|trans({}, 'SonataMediaBundle') }}:</strong> <span type="label">{{ media.providerName|trans({}, 'SonataMediaBundle') }}</span>
+                <br/>
+                <strong>{{ 'widget_label_context'|trans({}, 'SonataMediaBundle') }}:</strong> <span type="label">{{ media.context|trans({}, 'SonataMediaBundle') }}</span>
+            {% else %}
+                <strong>{{ 'widget_label_type'|trans({}, 'SonataMediaBundle') }}:</strong> <span type="label">{{ form.vars['provider']|trans({}, 'SonataMediaBundle') }}</span>
+                <br/>
+                <strong>{{ 'widget_label_context'|trans({}, 'SonataMediaBundle') }}:</strong> <span type="label">{{ form.vars['context']|trans({}, 'SonataMediaBundle') }}</span>
+            {% endif %}
+        </div>
+    </div>
+{% endblock sonata_media_type_widget %}

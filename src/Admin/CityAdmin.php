@@ -37,8 +37,22 @@ final class CityAdmin extends AbstractAdmin
 
     protected function configureListFields(ListMapper $list): void
     {
-        $list->addIdentifier('name');
-        $list->add('idx');
+        $list
+            ->addIdentifier('name', fieldDescriptionOptions: [
+                'label' => 'Название города',
+            ])
+            ->add('idx', fieldDescriptionOptions: [
+                'label' => 'Индекс',
+            ])
+            ->add(name: ListMapper::NAME_ACTIONS, fieldDescriptionOptions:[
+                'actions' => [
+                    'show' => [],
+                    'edit' => [],
+                    'delete' => [],
+                ],
+                'label' => 'Действия',
+            ])
+        ;
     }
 
     public function toString(object $object): string

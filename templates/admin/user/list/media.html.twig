@@ -1,0 +1,12 @@
+{% extends get_admin_template('base_list_field', admin.code) %}
+
+{% block field %}
+    {% if value is not null %}
+        <div>
+            {{ sonata_media(value, 'admin', {'class': 'img-thumbnail'}) }}
+        </div>
+        <a href="{{ admin.getConfigurationPool().adminByAdminCode('admin.sonata_media_media').generateObjectUrl('show', value) }}">
+            <strong>{{ value.name }}</strong>
+        </a>
+    {% endif %}
+{% endblock %}

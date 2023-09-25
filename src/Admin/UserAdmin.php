@@ -6,27 +6,23 @@ namespace App\Admin;
 
 use App\Entity\City;
 use App\Entity\User;
-use App\Services\UserHelper;
-use phpDocumentor\Reflection\Types\This;
+use App\Form\DataMapper\UserAdminDataMapper;
+use App\Validator as AppAssert;
+use App\Validator\User as Validator;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
-use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Form\Type\ModelType;
 use Sonata\AdminBundle\Route\RouteCollectionInterface;
 use Sonata\AdminBundle\Show\ShowMapper;
+use Sonata\MediaBundle\Form\Type\MediaType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Contracts\Service\Attribute\SubscribedService;
-use Symfony\Contracts\Service\ServiceSubscriberInterface;
-use Symfony\Contracts\Service\ServiceSubscriberTrait;
+use Symfony\Component\Validator\Constraints as Assert;
 
-final class UserAdmin extends AbstractAdmin implements ServiceSubscriberInterface
+final class UserAdmin extends AbstractAdmin
 {
-    use ServiceSubscriberTrait;
-
     protected function configureRoutes(RouteCollectionInterface $collection): void
     {
         $collection->remove('batch');
@@ -34,94 +30,111 @@ final class UserAdmin extends AbstractAdmin implements ServiceSubscriberInterfac
 
     protected function configureFormFields(FormMapper $form): void
     {
-        $user = $this->getSubject();
-        $webPath = $this->getUserHelper()->getAvatarWebPath($user->getAvatar());
+        /** @var \App\Entity\User $subject */
+        $subject = $this->getSubject();
 
         $form
             ->with('Имя и фамилия')
-                ->add('name', TextType::class)
-                ->add('surName', TextType::class)
+            ->add('name', TextType::class, [
+                'constraints' => [
+                    new Assert\NotBlank(),
+                    new Validator\Compound\UserNameCompound(),
+                ],
+            ])
+            ->add('surName', TextType::class, [
+                'constraints' => [
+                    new Assert\NotBlank(),
+                    new Validator\Compound\UserSurNameCompound(),
+                ],
+            ])
             ->end()
             ->with('Выберите город')
-                ->add('city', ModelType::class, [
-                    'class' => City::class,
-                    'property' => 'name',
+            ->add('city', ModelType::class, [
+                'class' => City::class,
+                'property' => 'name',
+                'constraints' => [
+                    new Assert\NotBlank(),
+                ],
             ])
             ->end()
             ->with('Выберите изображение')
-                ->add('avatar', FileType::class, [
-                    'required' => false,
-                    'mapped' => false,
-                    'help' => "<img src={$webPath} class=admin-preview alt='' style='max-height: 200px; max-width: 200px;'/>",
-                    'help_html' => true,
+            ->add('media', MediaType::class, [
+                'provider' => 'sonata.media.provider.image',
+                'context' => 'user',
+                'label' => false,
+                'media' => $subject->getMedia(),
+                'constraints' => [
+                    new AppAssert\SonataMedia([
+                        new Assert\File([
+                            'maxSize' => '1024K',
+                            'mimeTypes' => ['image/pjpeg', 'image/jpeg', 'image/png', 'image/x-png'],
+                            'extensions' => ['png', 'jpeg', 'jpg'],
+                            'extensionsMessage' => "Недопустимое расширение файла {{ extension }}. Разрешенные расширения {{ extensions }}.",
+                        ])
+                    ])
+                ],
             ])
-            ->end()
-        ;
+            ->end();
+
+        $form->getFormBuilder()->setDataMapper(new UserAdminDataMapper());
     }
 
     protected function configureDatagridFilters(DatagridMapper $datagrid): void
     {
         $datagrid
-            ->add('name')
+            ->add('name', filterOptions: [
+                'field_type' => EntityType::class,
+                'field_options' => [
+                    'class' => User::class,
+                    'choice_label' => 'name',
+                ],
+                'label' => 'Имя',
+            ])
             ->add('city', filterOptions: [
                 'field_type' => EntityType::class,
                 'field_options' => [
                     'class' => City::class,
                     'choice_label' => 'name',
                 ],
-            ])
-        ;
+                'label' => 'Город',
+            ]);
     }
 
     protected function configureListFields(ListMapper $list): void
     {
-        dump($this->container);
         $list
-            ->addIdentifier('name', )
+            ->addIdentifier('name',)
             ->addIdentifier('surName')
             ->add('city.name')
-            ->add('avatar.name')
-            ->add('image', FieldDescriptionInterface::TYPE_STRING, fieldDescriptionOptions: [
-                'accessor' => function ($subject) {
-                    return $this->getUserHelper()->getAvatarWebPath($subject->getAvatar());
-                },
-                'template' => 'admin/user/image.html.twig',
+            ->add('media', null, [
+                'label' => 'Aватар',
+                'template' => 'admin/user/list/media.html.twig',
             ])
-        ;
+            ->add(name: ListMapper::NAME_ACTIONS, fieldDescriptionOptions: [
+                'actions' => [
+                    'show' => [],
+                    'edit' => [],
+                    'delete' => [],
+                ],
+            ]);
     }
 
     protected function configureShowFields(ShowMapper $show): void
     {
         $show
-            ->tab('Пользователь')
-                ->with('Имя и фамилия')
-                    ->add('name')
-                    ->add('surName')
-                ->end()
+            ->with('Имя и фамилия')
+                ->add('name')
+                ->add('surName')
             ->end()
-            ->tab('Город')
-                ->with('Город пользователя')
-                    ->add('city.name')
-                ->end()
+            ->with('Город пользователя')
+                ->add('city.name')
             ->end()
-            ->tab('Изображение')
-                ->with('Изображение пользователя')
-                ->add('avatar.name')
-                ->add('image', FieldDescriptionInterface::TYPE_STRING, [
-                    'accessor' => function ($subject) {
-                        return $this->getUserHelper()->getAvatarWebPath($subject->getAvatar());
-                    },
-                    'template' => 'admin/user/image.html.twig',
+            ->with('Изображение пользователя')
+                ->add('media', null, [
+                    'label' => 'Aватар',
+                    'template' => 'admin/user/show/media.html.twig',
                 ])
-                ->end()
-            ->end()
-        ;
-    }
-
-    #[SubscribedService]
-    private function getUserHelper(): UserHelper
-    {
-        return $this->container->get(__METHOD__);
+            ->end();
     }
 
     public function toString(object $object): string

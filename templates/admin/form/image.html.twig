@@ -1,0 +1,8 @@
+{% if object is not null %}
+    <div class="col-md-4 pull-left">
+        <div class="pull-left" style="margin-right: 5px">
+            {{ sonata_media(object, 'admin', {'class': 'img-thumbnail'}) }}<br>
+            <strong>{{ object.name }}</strong>
+        </div>
+    </div>
+{% endif %}

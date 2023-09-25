@@ -2,7 +2,9 @@
 
 namespace App;
 
+use App\DependencyInjection\Compiler\SonataMediaMediaPass;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
 
 class Kernel extends BaseKernel
@@ -14,5 +16,10 @@ class Kernel extends BaseKernel
         parent::boot();
 
         date_default_timezone_set($this->getContainer()->getParameter('timezone'));
+    }
+
+    protected function build(ContainerBuilder $container): void
+    {
+        $container->addCompilerPass(new SonataMediaMediaPass());
     }
 }
