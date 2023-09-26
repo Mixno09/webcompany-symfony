@@ -66,10 +66,10 @@
 
             {% for user in users %}
             <div class="users">
-                {% if user.avatar is not instanceof('\\Sonata\\MediaBundle\\Model\\Media') %}
-                    <img width="100" src="{{ user.avatar }}" class="image" alt="Фотография">
+                {% if user.media is not instanceof('\\Sonata\\MediaBundle\\Model\\Media') %}
+                    <img width="100" src="{{ user.media }}" class="image" alt="Фотография">
                 {% else %}
-                    {{ sonata_media(user.avatar, 'small', {'class': 'image'}) }}
+                    {{ sonata_media(user.media, 'small', {'class': 'image'}) }}
                 {% endif %}
                 <div class="userdan">
                     <h4>{{ user.name }} {{ user.surName }}</h4>

@@ -31,11 +31,6 @@ services:
         tags:
             - { name: sonata.admin, model_class: App\Entity\City, manager_type: orm, label: 'Cities'}
 
-    file.admin:
-        class: App\Admin\FileAdmin
-        tags:
-            - { name: sonata.admin, model_class: App\Entity\File, manager_type: orm, label: 'File' }
-
     admin.sonata_media_media:
         class: App\Admin\SonataMediaMediaAdmin
         tags:

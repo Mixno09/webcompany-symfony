@@ -11,35 +11,38 @@
             {{ form_start(form) }}
             <div class="form">
                 <h3>Форма Редактирования Пользователя</h3>
-                {% for error in form.name.vars.errors %}
-                    <span style="color: #d71414; margin: unset">{{ error.message }}</span>
-                {% endfor %}
                 {{ form_widget(form.name, {
                     'attr': {'placeholder': 'Имя'},
                     'translation_domain': false,
                 }) }}
-                {% for error in form.surName.vars.errors %}
+                {% for error in form.name.vars.errors %}
                     <span style="color: #d71414; margin: unset">{{ error.message }}</span>
                 {% endfor %}
                 {{ form_widget(form.surName, {
                     'attr': {'placeholder': 'Фамилия'},
                     'translation_domain': false,
                 }) }}
-                <span>
-                {% for error in form.city.vars.errors %}
+                {% for error in form.surName.vars.errors %}
                     <span style="color: #d71414; margin: unset">{{ error.message }}</span>
                 {% endfor %}
+                <span>
                 {{ form_widget(form.city, {
                     'attr': {'size': '1'},
                     'translation_domain': false,
                 }) }}
-                </span>
-                <p>Выберите файл изображения</p>
-                {% for error in form.file.vars.errors %}
+                {% for error in form.city.vars.errors %}
                     <span style="color: #d71414; margin: unset">{{ error.message }}</span>
                 {% endfor %}
-                <img width="100" src="{{ avatarWebPath }}" class="image" alt="Фотография">
-                {{ form_widget(form.file, {'translation_domain': false}) }}
+                </span>
+                <p>Выберите файл изображения</p>
+                {% if user.media is not instanceof('\\Sonata\\MediaBundle\\Model\\Media') %}
+                    <img width="100" src="{{ user.media }}" class="image" alt="Фотография">
+                {% endif %}
+                {{ sonata_media(user.media, 'small', {'class': 'image'}) }}
+                {{ form_widget(form.media, {'translation_domain': false}) }}
+                {% for error in form.media.vars.errors %}
+                    <span style="color: #d71414; margin: unset">{{ error.message }}</span>
+                {% endfor %}
                 <input type="submit" value="Редактировать">
                 <a href="{{ path('users') }}">Отмена</a>
             </div>

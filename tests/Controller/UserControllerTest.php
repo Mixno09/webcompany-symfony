@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Controller;
 
 use App\Entity\City;
+use App\Entity\SonataMediaMedia;
 use App\Entity\User;
 use App\Repository\CityRepository;
 use App\Repository\UserRepository;
 use App\Services\FileUploader;
 use Doctrine\ORM\EntityManagerInterface;
 use Generator;
+use Sonata\MediaBundle\Filesystem\Local;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class UserControllerTest extends WebTestCase
@@ -45,25 +47,33 @@ final class UserControllerTest extends WebTestCase
 
         $form = $crawler->filter('form[name="user"]')->form();
 
-        /** @var FileUploader $fileUploader */
-        $fileUploader = self::getContainer()->get(FileUploader::class);
-
         $client->submit($form, [
             'user[name]' => 'Mixail',
             'user[surName]' => 'Sokolov',
             'user[city]' => $city->getId(),
-            'user[file]' => __DIR__ . '/../files/avatar-1.jpg',
+            'user[media]' => __DIR__ . '/../files/avatar-1.jpg',
         ]);
-
         $this->assertResponseRedirects('/user', 302);
         $userRepository = self::getContainer()->get(UserRepository::class);
         $user = $userRepository->findOneBy(['name' => 'Mixail']);
+
+        /** @var \Sonata\MediaBundle\Provider\Pool $pool */
+        $pool = self::getContainer()->get('sonata.media.pool');
+        $provider = $pool->getProvider($user->getMedia()->getProviderName());
+
         $this->assertInstanceOf(User::class, $user);
         $this->assertSame('Sokolov', $user->getSurName());
         $this->assertSame($city->getId(), $user->getCity()->getId());
+
+        $adapter = $provider->getFilesystem()->getAdapter();
+        $this->assertInstanceOf(Local::class, $adapter);
+
+        $mediaDirPath = $adapter->getDirectory();
+        $mediaRelativePath = $provider->getReferenceFile($user->getMedia())->getName();
+        $mediaPath = $mediaDirPath . '/' . $mediaRelativePath;
         $this->assertFileEquals(
             __DIR__ . '/../files/avatar-1.jpg',
-            $fileUploader->getFilePath($user->getAvatar()),
+            $mediaPath,
         );
     }
 
@@ -72,8 +82,8 @@ final class UserControllerTest extends WebTestCase
         $client = self::createClient();
 
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
-        /** @var FileUploader $fileUploader */
-        $fileUploader = self::getContainer()->get(FileUploader::class);
+        /** @var \Sonata\MediaBundle\Model\MediaManagerInterface $mediaManager */
+        $mediaManager = self::getContainer()->get('sonata.media.manager.media');
 
         $city = new City('Minsk', 1);
         $entityManager->persist($city);
@@ -82,9 +92,14 @@ final class UserControllerTest extends WebTestCase
         $entityManager->persist($newCity);
 
         $user = new User('Mixail', 'Sokolov', $city);
-        $avatar = $fileUploader->copy(__DIR__ . '/../files/avatar-1.jpg');
-        $entityManager->persist($avatar);
-        $user->setAvatar($avatar);
+
+        $media = new SonataMediaMedia();
+        $media->setBinaryContent(__DIR__ . '/../files/avatar-1.jpg');
+        $media->setProviderName('sonata.media.provider.image');
+        $media->setContext('user');
+        $mediaManager->save($media, false);
+        $user->setMedia($media);
+
         $entityManager->persist($user);
         $entityManager->flush();
 
@@ -95,8 +110,12 @@ final class UserControllerTest extends WebTestCase
         $this->assertFormValue('form[name="user"]', 'user[name]', $user->getName());
         $this->assertFormValue('form[name="user"]', 'user[surName]', $user->getSurName());
         $this->assertFormValue('form[name="user"]', 'user[city]', (string) $user->getCity()->getId());
-        $avatarWebPath = $fileUploader->getWebPath($avatar);
-        $this->assertSelectorExists("form[name=\"user\"] .image[src=\"{$avatarWebPath}\"]");
+
+        /** @var \Sonata\MediaBundle\Provider\Pool $pool */
+        $pool = self::getContainer()->get('sonata.media.pool');
+        $provider = $pool->getProvider($user->getMedia()->getProviderName());
+        $webPath = $provider->generatePublicUrl($user->getMedia(), 'small');
+        $this->assertSelectorExists("form[name=\"user\"] .image[src=\"{$webPath}\"]"); // todo not working
 
         $form = $crawler->filter('form[name="user"]')->form();
 
@@ -114,9 +133,16 @@ final class UserControllerTest extends WebTestCase
         $this->assertSame('Dima', $user->getName());
         $this->assertSame('Ivanov', $user->getSurName());
         $this->assertSame($newCity->getId(), $user->getCity()->getId());
+
+        $adapter = $provider->getFilesystem()->getAdapter();
+        $this->assertInstanceOf(Local::class, $adapter);
+
+        $mediaDirPath = $adapter->getDirectory();
+        $mediaRelativePath = $provider->getReferenceFile($user->getMedia())->getName();
+        $mediaPath = $mediaDirPath . '/' . $mediaRelativePath;
         $this->assertFileEquals(
             __DIR__ . '/../files/avatar-2.jpg',
-            $fileUploader->getFilePath($user->getAvatar()),
+            $mediaPath,
         );
     }
 
@@ -125,16 +151,20 @@ final class UserControllerTest extends WebTestCase
         $client = self::createClient();
 
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
-        /** @var FileUploader $fileUploader */
-        $fileUploader = self::getContainer()->get(FileUploader::class);
+        /** @var \Sonata\MediaBundle\Model\MediaManagerInterface $mediaManager */
+        $mediaManager = self::getContainer()->get('sonata.media.manager.media');
 
         $city = new City('Minsk', 1);
         $entityManager->persist($city);
 
         $user = new User('Mixail', 'Sokolov', $city);
-        $avatar = $fileUploader->copy(__DIR__ . '/../files/avatar-1.jpg');
-        $entityManager->persist($avatar);
-        $user->setAvatar($avatar);
+        $media = new SonataMediaMedia();
+        $media->setBinaryContent(__DIR__ . '/../files/avatar-1.jpg');
+        $media->setProviderName('sonata.media.provider.image');
+        $media->setContext('user');
+        $mediaManager->save($media, false);
+        $user->setMedia($media);
+
         $entityManager->persist($user);
         $entityManager->flush();
 

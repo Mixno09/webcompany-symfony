@@ -5,7 +5,6 @@ namespace App\MessageHandler\Query;
 use App\Entity\User;
 use App\Message\Query\GetUsersQuery;
 use App\Repository\UserRepository;
-use App\Services\FileUploader;
 use App\ViewModel\UserListItem;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -13,16 +12,13 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 final readonly class GetUsersHandler
 {
     private UserRepository $userRepository;
-    private FileUploader $fileUploader;
     private string $userAvatarPlaceholder;
 
     public function __construct(
         UserRepository                                       $userRepository,
-        FileUploader                                         $fileUploader,
         #[Autowire(param: 'user_avatar_placeholder')] string $userAvatarPlaceholder,
     ) {
         $this->userRepository = $userRepository;
-        $this->fileUploader = $fileUploader;
         $this->userAvatarPlaceholder = $userAvatarPlaceholder;
     }
 

@@ -14,6 +14,6 @@ final readonly class EditUserCommand
         public string        $name,
         public string        $surname,
         public City          $city,
-        public ?UploadedFile $file,
+        public ?UploadedFile $media,
     ) {}
 }

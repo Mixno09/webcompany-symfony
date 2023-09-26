@@ -4,21 +4,27 @@ declare(strict_types=1);
 
 namespace App\MessageHandler\Command;
 
+use App\Entity\SonataMediaMedia;
 use App\Message\Command\EditUserCommand;
 use App\Repository\UserRepository;
-use App\Services\FileUploader;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
+use Sonata\MediaBundle\Model\MediaManagerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class EditUserHandler
 {
     private EntityManagerInterface $entityManager;
-    private FileUploader $fileUploader;
     private UserRepository $userRepository;
-    public function __construct(EntityManagerInterface $entityManager, FileUploader $fileUploader, UserRepository $userRepository)
+    private MediaManagerInterface $mediaManager;
+
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        UserRepository $userRepository,
+        #[Autowire(service: 'sonata.media.manager.media')] MediaManagerInterface $mediaManager)
     {
+        $this->mediaManager = $mediaManager;
         $this->entityManager = $entityManager;
-        $this->fileUploader = $fileUploader;
         $this->userRepository = $userRepository;
     }
 
@@ -33,22 +39,16 @@ class EditUserHandler
         $user->setSurName($message->surname);
         $user->setCity($message->city);
 
-        $oldAvatar = null;
-        if ($message->file !== null) {
-            $avatar = $this->fileUploader->upload($message->file);
-            $this->entityManager->persist($avatar);
+        if ($message->media !== null) {
+            $media = new SonataMediaMedia();
+            $media->setBinaryContent($message->media);
+            $media->setProviderName('sonata.media.provider.image');
+            $media->setContext('user');
+            $this->mediaManager->save($media, false);
 
-            $oldAvatar = $user->getAvatar();
-            $user->setAvatar($avatar);
+            $user->setMedia($media);
         }
 
         $this->entityManager->flush();
-
-        if ($oldAvatar !== null) {
-            $this->fileUploader->delete($oldAvatar);
-
-            $this->entityManager->remove($oldAvatar);
-            $this->entityManager->flush();
-        }
     }
 }

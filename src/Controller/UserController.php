@@ -13,8 +13,9 @@ use App\MessageHandler\Command\EditUserHandler;
 use App\MessageHandler\Query\GetCitiesHandler;
 use App\MessageHandler\Query\GetUsersHandler;
 use App\Repository\UserRepository;
-use App\Services\UserHelper;
+use App\ViewModel\UserListItem;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -64,7 +65,7 @@ final class UserController extends AbstractController
     }
 
     #[Route('/edit/{id}/user', name: 'edit_user', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request, UserHelper $userHelper, EditUserHandler $editUserHandler, UserRepository $userRepository): Response
+    public function edit(int $id, Request $request, EditUserHandler $editUserHandler, UserRepository $userRepository, #[Autowire(param: 'user_avatar_placeholder')] string $userAvatarPlaceholder): Response
     {
         $user = $userRepository->findOneBy(['id' => $id]);
         if ($user === null) {
@@ -87,11 +88,13 @@ final class UserController extends AbstractController
             ]);
         }
 
-        $avatarWebPath = $userHelper->getAvatarWebPath($user->getAvatar());
+        if ($user->getMedia() === null) {
+            $user = new UserListItem($user->getId(), $user->getName(), $user->getSurName(), $user->getCity()->getName(), $userAvatarPlaceholder);
+        }
 
         return $this->render('user/edit_user.html.twig', [
             'form' => $form,
-            'avatarWebPath' => $avatarWebPath,
+            'user' => $user,
         ]);
     }
 
