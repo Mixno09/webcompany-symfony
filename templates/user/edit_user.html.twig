@@ -35,10 +35,11 @@
                 {% endfor %}
                 </span>
                 <p>Выберите файл изображения</p>
-                {% if user.media is not instanceof('\\Sonata\\MediaBundle\\Model\\Media') %}
-                    <img width="100" src="{{ user.media }}" class="image" alt="Фотография">
+                {% if user.media is null %}
+                    <img width="100" src="{{ asset('images/placeholder.png') }}" class="image" alt="Фотография">
+                {% else %}
+                    {{ sonata_media(user.media, 'small', {'class': 'image'}) }}
                 {% endif %}
-                {{ sonata_media(user.media, 'small', {'class': 'image'}) }}
                 {{ form_widget(form.media, {'translation_domain': false}) }}
                 {% for error in form.media.vars.errors %}
                     <span style="color: #d71414; margin: unset">{{ error.message }}</span>

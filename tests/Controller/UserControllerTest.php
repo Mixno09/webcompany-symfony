@@ -111,11 +111,10 @@ final class UserControllerTest extends WebTestCase
         $this->assertFormValue('form[name="user"]', 'user[surName]', $user->getSurName());
         $this->assertFormValue('form[name="user"]', 'user[city]', (string) $user->getCity()->getId());
 
-        /** @var \Sonata\MediaBundle\Provider\Pool $pool */
-        $pool = self::getContainer()->get('sonata.media.pool');
-        $provider = $pool->getProvider($user->getMedia()->getProviderName());
-        $webPath = $provider->generatePublicUrl($user->getMedia(), 'small');
-        $this->assertSelectorExists("form[name=\"user\"] .image[src=\"{$webPath}\"]"); // todo not working
+        /** @var \Sonata\MediaBundle\Twig\MediaRuntime $twigRuntime */
+        $twigRuntime = self::getContainer()->get('sonata.media.twig.runtime');
+        $webPath = $twigRuntime->path($media, 'small');
+        $this->assertSelectorExists("form[name=\"user\"] .image[src=\"{$webPath}\"]");
 
         $form = $crawler->filter('form[name="user"]')->form();
 
@@ -123,7 +122,7 @@ final class UserControllerTest extends WebTestCase
             'user[name]' => 'Dima',
             'user[surName]' => 'Ivanov',
             'user[city]' => $newCity->getId(),
-            'user[file]' => __DIR__ . '/../files/avatar-2.jpg',
+            'user[media]' => __DIR__ . '/../files/avatar-2.jpg',
         ]);
 
         $this->assertResponseRedirects("/edit/{$user->getId()}/user", 302);
@@ -134,6 +133,9 @@ final class UserControllerTest extends WebTestCase
         $this->assertSame('Ivanov', $user->getSurName());
         $this->assertSame($newCity->getId(), $user->getCity()->getId());
 
+        /** @var \Sonata\MediaBundle\Provider\Pool $pool */
+        $pool = self::getContainer()->get('sonata.media.pool');
+        $provider = $pool->getProvider($user->getMedia()->getProviderName());
         $adapter = $provider->getFilesystem()->getAdapter();
         $this->assertInstanceOf(Local::class, $adapter);
 

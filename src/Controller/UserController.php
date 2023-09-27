@@ -88,12 +88,8 @@ final class UserController extends AbstractController
             ]);
         }
 
-        if ($user->getMedia() === null) {
-            $user = new UserListItem($user->getId(), $user->getName(), $user->getSurName(), $user->getCity()->getName(), $userAvatarPlaceholder);
-        }
-
         return $this->render('user/edit_user.html.twig', [
-            'form' => $form,
+            'form' => $form->createView(),
             'user' => $user,
         ]);
     }
